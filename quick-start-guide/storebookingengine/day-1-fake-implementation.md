@@ -2,7 +2,7 @@
 
 ## **Objective for Day 1**
 
-Create a fully working implementation of the Open Booking API by using [FakeDatabase](https://www.nuget.org/packages/OpenActive.FakeDatabase.NET/) within your application.
+Create a fully working implementation of the [Open Booking API](https://www.openactive.io/open-booking-api/EditorsDraft/) by using [FakeDatabase](https://www.nuget.org/packages/OpenActive.FakeDatabase.NET/) within your application.
 
 ### Rationale
 
@@ -16,7 +16,7 @@ FakeDatabase.NET is an in-memory fake database that is not persisted, and will a
 
 Inspect the `Controllers` and copy the files \(or the contents of the files\) as appropriate for your application.
 
-Note you will be creating the following endpoints:
+Note you will be creating the following endpoints \(as per the [Open Booking API specification](https://www.openactive.io/open-booking-api/EditorsDraft/#paths-and-verbs)\):
 
 * Dataset Site
 * Open Data RPDE feeds
@@ -28,6 +28,9 @@ Note you will be creating the following endpoints:
 * Order Cancellation
 * Orders RPDE Feed
 * Order Status
+
+Additionally you will be creating two endpoints for use with the test suite \(not for use in production\):
+
 * Test Harness Event Creation
 * Test Harness Event Deletion
 

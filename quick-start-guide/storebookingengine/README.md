@@ -2,7 +2,7 @@
 
 ## Overall Objective
 
-This guide will help you implement StoreBookingEngine within a target development window of 8 days.
+This guide will help you implement StoreBookingEngine within a target development window of 8 days, creating an implementation of the [Open Booking API](https://www.openactive.io/open-booking-api/EditorsDraft/).
 
 ### Introduction
 

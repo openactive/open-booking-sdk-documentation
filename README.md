@@ -2,7 +2,7 @@
 
 ## What's in the box?
 
-This **Open Booking SDK** will create **Open Opportunity Data Feeds**, a **Dataset Site**, and an **Open Booking API**.
+This **Open Booking SDK** will create **Open Opportunity Data Feeds**, a **Dataset Site**, and an [**Open Booking API**](https://www.openactive.io/open-booking-api/EditorsDraft/).
 
 The Open Opportunity Data Feeds and Dataset Site features within the Open Booking SDK leverage libraries that are also available [separately](reference/dependencies.md) for advanced or non-bookable implementations.
 
