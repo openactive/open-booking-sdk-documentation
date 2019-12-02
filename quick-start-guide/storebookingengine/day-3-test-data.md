@@ -10,7 +10,7 @@ In order to allow the test suite to fully test your implementation, it must be p
 
 ## Step 1 - Inspect Test Endpoints
 
-These endpoints are show below, and are already configured in your controller from Day 1:
+These endpoints are shown below, and are already configured in your controller from Day 1:
 
 ```csharp
 // POST api/openbooking/test-interface/scheduledsession

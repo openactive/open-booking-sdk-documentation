@@ -4,6 +4,7 @@
 
 ## Quick Start Guide
 
+* [Design Considerations](quick-start-guide/design-considerations.md)
 * [StoreBookingEngine](quick-start-guide/storebookingengine/README.md)
   * [Day 1: Fake Implementation](quick-start-guide/storebookingengine/day-1-fake-implementation.md)
   * [Day 2: Open data feeds](quick-start-guide/storebookingengine/day-2-open-data-feeds.md)
