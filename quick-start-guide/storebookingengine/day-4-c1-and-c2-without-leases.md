@@ -4,16 +4,21 @@
 
 Implement the `GetOrderItem` within the implementations of ****`OpportunityStore` created in Day 3.
 
-## Step 2: StoreBookingEngineSettings
+## Step 2: Supported Fields
 
-Customise the following `StoreBookingEngineSettings` within `Startup.cs` or `ServiceConfig.cs` :
+Customise the following `StoreBookingEngineSettings` within `Startup.cs` or `ServiceConfig.cs` to include only those fields that your booking system supports \(as these must be reflected back to the Broker\):
 
 * `CustomerPersonSupportedFields`
 * `CustomerOrganizationSupportedFields`
 * `BrokerSupportedFields`
+
+## **Step 3: Booking Service Details**
+
+Complete the details in the setting below to include information about your booking system:
+
 * `BookingServiceDetails`
 
-## **Step 3: SellerStore**
+## **Step 4: SellerStore**
 
 Implement a new `SellerStore`, with the method `GetSeller`.
 
@@ -27,7 +32,7 @@ SellerIdTemplate = new SingleIdTemplate<SellerIdComponents>(
     ),
 ```
 
-## **Step 4: Test Suite**
+## **Step 5: Test Suite**
 
 Tests should pass for C1 and C2  
 
