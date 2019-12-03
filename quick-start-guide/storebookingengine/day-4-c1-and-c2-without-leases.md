@@ -19,7 +19,7 @@ Implement a new `SellerStore`, with the method `GetSeller`.
 
 Configure the `SellerStore` setting of  `StoreBookingEngineSettings` within `Startup.cs` or `ServiceConfig.cs`.
 
-Implement the `SellerIdTemplate` setting of  `StoreBookingEngineSettings` within `Startup.cs` or `ServiceConfig.cs`.
+Implement the `SellerIdTemplate` setting of  `StoreBookingEngineSettings` within `Startup.cs` or `ServiceConfig.cs`:
 
 ```csharp
 SellerIdTemplate = new SingleIdTemplate<SellerIdComponents>(
