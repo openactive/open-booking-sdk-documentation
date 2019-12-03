@@ -44,16 +44,38 @@ public IActionResult Delete([FromServices] IBookingEngine bookingEngine, string 
 
 Note at this stage these endpoints are not authenticated
 
-## Step 2 - Configure Stores
+## Step 2 - Configure Opportunity Stores
 
-## Step 3 - Implement Stores
+The `StoreBookingEngine` handles the orchestration of the booking across various implementations of `OpportunityStore` , where a store is defined for a number of related opportunity types that use a common `IBookableIdComponents`.
 
-* **Implement endpoint to add test data \(duplicated for each data type - e.g. sessions, facilities\)**
-* **Implement endpoint to remove test data \(duplicated for each data type - e.g. sessions, facilities\)**
-* **These are repeated for each data type - e.g. sessions, facilities**
+Implementations of `OpportunityStore` are therefore configured to be routed from a number of  related opportunity types, and each bookable opportunity type within your booking system must match at least one implementation of `OpportunityStore`.
 
-## Step 4 - Test
+Within `StoreBookingEngineSettings` within `Startup.cs` or `ServiceConfig.cs` the `OpenBookingStoreRouting` setting configures the routing to the different `OpportunityStore`implementations from the `CreateTestData` and `DeleteTestData` methods being called in the controller.
 
-* * **“Test data exists in correct state” test should pass after test data is added**
-  * **“Test data does not exist” test should pass after test data is removed**
+```csharp
+// List of _bookable_ opportunity types and which store to route to for each
+OpenBookingStoreRouting = new Dictionary<IOpportunityStore, List<OpportunityType>> {
+    {
+        new SessionStore(), new List<OpportunityType> { OpportunityType.ScheduledSession }
+    }
+},
+```
+
+## Step 3 - Implement Test Interface
+
+For this day of the guide, in each store all that is required is to implement `CreateTestDataItem` and `DeleteTestDataItem` within an implementation of the abstract `OpportunityStore` class.
+
+`CreateTestDataItem` must create the opportunity that is provided, or return a 500 error if the requested opportunity type is not supported. 
+
+`DeleteTestDataItem` must delete all opportunities that match the name provided.
+
+Note that the names of the items stored within the booking system may be prefixed by the test interface, where such a prefix is applied to both the event stored by `CreateTestDataItem` and event matched by `DeleteTestDataItem`.
+
+{% hint style="warning" %}
+Note that the current test suite implementation does not support prefixes, however these can be easily added on request if this is of interest.
+{% endhint %}
+
+## Step 4 - Run Test Suite
+
+The "Create test event" test within the `openactive-integration-tests` test suite should pass if the implementations of `OpportunityStore` have been implemented successfully, and if the created Event correctly appears within the appropriate feed.
 
