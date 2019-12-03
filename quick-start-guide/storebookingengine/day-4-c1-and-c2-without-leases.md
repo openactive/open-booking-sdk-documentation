@@ -1,19 +1,34 @@
 # Day 4: C1 and C2 without leases
 
-**Customise the following:**
+## Step 1: GetOrderItem
 
-* **getCustomerSupportedFields**
-* **getAttendeeSupportedFields**
+Implement the `GetOrderItem` within the implementations of ****`OpportunityStore` created in Day 3.
 
-**Implement quick responses:**
+## Step 2: StoreBookingEngineSettings
 
-* **getBookingService**
+Customise the following `StoreBookingEngineSettings` within `Startup.cs` or `ServiceConfig.cs` :
 
-**Implement one more complex response:**
+* `CustomerPersonSupportedFields`
+* `CustomerOrganizationSupportedFields`
+* `BrokerSupportedFields`
+* `BookingServiceDetails`
 
-* **getSeller \(auth\)**
-* **getOrderItem**
+## **Step 3: SellerStore**
 
-**No-lease tests should pass for C1 and C2, using test data**  
+Implement a new `SellerStore`, with the method `GetSeller`.
+
+Configure the `SellerStore` setting of  `StoreBookingEngineSettings` within `Startup.cs` or `ServiceConfig.cs`.
+
+Implement the `SellerIdTemplate` setting of  `StoreBookingEngineSettings` within `Startup.cs` or `ServiceConfig.cs`.
+
+```csharp
+SellerIdTemplate = new SingleIdTemplate<SellerIdComponents>(
+    "{+BaseUrl}api/sellers/{SellerIdLong}"
+    ),
+```
+
+## **Step 4: Test Suite**
+
+Tests should pass for C1 and C2  
 
 
