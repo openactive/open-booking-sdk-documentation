@@ -2,7 +2,7 @@
 
 ## Objective for Day 4
 
-Implement C1 and C2 responses without leases enabled.
+Implement C1 and C2 responses without leases.
 
 ### Rationale
 
@@ -137,7 +137,7 @@ Note this object must include at least `Name` and `TaxMode`.
 
 Configure the `SellerStore` setting of  `StoreBookingEngineSettings` within `Startup.cs` or `ServiceConfig.cs` to use this new implementation of `SellerStore`.
 
-## **Step 5: Test Suite**
+## **Step 5: Run Test Suite**
 
 Tests should pass for C1 and C2  
 
