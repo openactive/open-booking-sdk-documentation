@@ -63,7 +63,7 @@ OpenBookingStoreRouting = new Dictionary<IOpportunityStore, List<OpportunityType
 
 ## Step 3 - Implement Test Interface
 
-For this day of the guide, in each store all that is required is to implement `CreateTestDataItem` and `DeleteTestDataItem` within an implementation of the abstract `OpportunityStore` class.
+For this day of the guide, in each store all that is required is to implement `CreateTestDataItem` and `DeleteTestDataItem` within an implementation of the abstract `OpportunityStore` class. The other methods can simply throw `NotImplementedException`.
 
 `CreateTestDataItem` must create the opportunity that is provided, or return a 500 error if the requested opportunity type is not supported. 
 
