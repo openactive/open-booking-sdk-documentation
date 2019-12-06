@@ -8,7 +8,23 @@ Implement leasing and booking.
 
 With the details of the opportunity handled in Day 4, Day 5 is about ensuring that leasing and booking actually occurs.
 
-## Step 1: Understand the StoreBookingEngine booking flow
+## Step 1: Ensure your database has a compatible schema
+
+The Open Booking API includes concepts that likely map onto your existing schema, however your database schema may require slight adjustment in order to be compatible.
+
+![Database structure to support Open Booking API](../../.gitbook/assets/booking-system-data-structure.png)
+
+| Entity | Description |
+| :--- | :--- |
+| Order | Can include a lease flag |
+| OrderItem |  |
+| _Opportunity_ |  |
+| Offer |  |
+| Seller | Only required for booking systems, can be one |
+| AuthToken |  |
+| Booking Partner |  |
+
+## Step 2: Understand the StoreBookingEngine booking flow
 
 The `StoreBookingEngine` handles booking of each `OrderItem`, as well as creating the overall `Lease` or `Order` within a transaction.
 
@@ -19,15 +35,7 @@ The diagram below illustrates the abstract methods that are called by the `Store
 
 ![Methods called by the StoreBookingEngine](../../.gitbook/assets/openactive-tooling-flows.png)
 
-## Step 2: Ensure your database has a compatible structure
 
-Orders table \(with lease flag\)
-
-OrderItems table
-
-Auth table
-
-Seller table \(booking systems only\)
 
 ## Step 3: Implement OrderStore
 
@@ -78,7 +86,7 @@ public override void DeleteLease(OrderIdComponents orderId)
 }
 ```
 
-### Option 2: Named lease - lease at C2 only
+### Option 2: Named leasing - lease at C2 only
 
 Use conditional logic to return `null` from `BeginOrderTransaction` and `CreateLease` at `FlowStage.C1`.
 
