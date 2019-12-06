@@ -16,13 +16,13 @@ The Open Booking API includes concepts that likely map onto your existing schema
 
 | Entity | Description |
 | :--- | :--- |
-| Order | Can include a lease flag |
-| OrderItem |  |
-| _Opportunity_ |  |
-| Offer |  |
-| Seller | Only required for booking systems, can be one |
-| AuthToken |  |
-| Booking Partner |  |
+| Order | A table representing the atomic successfully created `Order` which is the result of [**B**](https://www.openactive.io/open-booking-api/EditorsDraft/#order-creation-b). A lease flag can also be added to this table to allow it to also represent a leased `OrderQuote`, or a separate table may be used for this purpose. It likely also include the booker details. |
+| OrderItem | A table representing an individual booking of an opportunity within an `Order`.  It likely also includes the guest checkout attendee details if these are supported. Existing booking or attendee tables may serve this purpose. Each OrderItem represents a booked space or use of [a 'bookable' Opportunity and Offer pair](https://www.openactive.io/open-booking-api/EditorsDraft/#definition-of-a-bookable-opportunity-and-offer-pair). |
+| _Opportunity_ | One or many tables that represent the different [types of opportunity](https://developer.openactive.io/data-model/data-model-overview), some of which may be [bookable](https://www.openactive.io/open-booking-api/EditorsDraft/#definition-of-a-bookable-opportunity-and-offer-pair). |
+| Offer | A table or other data structure that represents the available Offers within each Opportunity |
+| Seller | A table that represents Sellers, organizations or individuals who organize the events or provide the facilities. Existing "organisation" tables may serve this purpose. This is only required if the booking system is multi-tenancy within the same database \(i.e. it supports multiple Sellers\). |
+| AuthToken | This is likely to be managed by the authentication library, e.g. as JWT. See [Day 8](day-8-authentication.md) for more information. |
+| Booking Partner | This is likely to be managed by the authentication library, e.g. as a table of OAuth Clients. See [Day 8](day-8-authentication.md) for more information. |
 
 ## Step 2: Understand the StoreBookingEngine booking flow
 
