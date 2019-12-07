@@ -13,7 +13,9 @@
   * [Day 5: Leases and B](quick-start-guide/storebookingengine/day-5-b-and-delete-order.md)
   * [Day 6: Orders feed](quick-start-guide/storebookingengine/day-6-orders-feed.md)
   * [Day 7: Cancellation](quick-start-guide/storebookingengine/day-7-cancellation.md)
-  * [Day 8: Authentication](quick-start-guide/storebookingengine/day-8-authentication.md)
+  * [Day 8: Authentication](quick-start-guide/storebookingengine/day-8-authentication/README.md)
+    * [ASP.NET Core Web API v2.0](quick-start-guide/storebookingengine/day-8-authentication/dotnet-core-web-api.md)
+    * [ASP.NET Framework Web API](quick-start-guide/storebookingengine/day-8-authentication/dotnet-framework.md)
 
 ## Reference
 

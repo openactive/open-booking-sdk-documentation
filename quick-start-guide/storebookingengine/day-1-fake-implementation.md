@@ -20,7 +20,7 @@ Note you will be creating the following endpoints \(as per the [Open Booking API
 
 * Dataset Site
 * Open Data RPDE feeds
-* OrderQuote Creation \(C1 & C2\)
+* OrderQuote Creation \(C1\)
 * OrderQuote Creation \(C2\)
 * OrderQuote Deletion
 * Order Creation \(B\)
