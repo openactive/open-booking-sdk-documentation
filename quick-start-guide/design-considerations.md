@@ -48,14 +48,21 @@ The preferred approach is to provide Sellers with an OpenID Connect flow to appr
 
 ### Booking partner management
 
-Booking Systems should provide a view of all approved booking partners, with the ability to:
+Booking Systems should provide a view of all approved booking partners to the Seller, with the ability to:
 
 * **Manage** - Open the booking partners' own settings page, available on their own website.
-* **Revoke Permission** - Remove the booking partners' access to the Seller.
+  * From a technical perspective: this simply links to the Management URL that is provided when the booking partner registers their OpenID Connect Client.
+* **Suspend Bookings** - Temporarily suspend new bookings and customer requested cancellations, but allow provider requested cancellations, refunds and customer notifications to continue as normal. This is designed to give the Seller a mechanism of control in the case of a contract dispute with the booking partner.
+  * From a technical perspective: this simply revokes the refresh token provided to the booking partner for this seller.
+* **Restore** - the inverse of the "Suspend Bookings" action, to restore access to the booking partner to make new bookings and customer requested cancellations.
+  * From a technical perspective: this button simply opens the Restore Access URL provided when the booking partner registers their OpenID Connect Client, which causes them to go through the OpenID Connect flow to attain a new refresh token.
+* **Remove** - Completely remove the booking partners' access to the Seller. This will delete all Order data from the booking partner, prevent customers from getting notifications about changes or cancellations to existing bookings that have been made via this booking partner, and prevent them getting refunds via the booking partner. Once completed, the operation is not reversible. All existing Orders for this booking partner will be converted to the booking system's native guest bookings, and customers will receive native booking system notifications via email ongoing. If permission restored to the booking partner some time later, access to previously created Orders will not be available.
+  * From a technical perspective: This first checks that sufficient time has lapsed since "Suspend Booking" was used for the authToken to have expired, and displays a message with the remaining duration if not.  If sufficient time has lapsed, it sets all of the Seller's Orders from the booking partner in the Orders feed to "deleted", and reassigns them to be "native" booking system bookings.
+  * To simplify implementation, "Remove" is only possible after the booking partner has been suspended for the full authToken expiry duration, as this removes the requirement for asynchronous logic.
 
 Additionally the Booking System may consider providing statistics relating to bookings made via brokers within each booking partner.
 
-![Sketch of booking partner management page](../.gitbook/assets/new-wireframe-1-2.png)
+![](../.gitbook/assets/new-wireframe-1-7.png)
 
 ### OpenActive booking event-level "tick box"
 
