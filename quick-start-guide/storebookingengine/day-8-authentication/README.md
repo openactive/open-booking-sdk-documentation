@@ -99,15 +99,21 @@ To complete this flow, the Authorization Request must include only the `openacti
 
 ![Client Credentials Flow](../../../.gitbook/assets/client-credentials-flow.png)
 
-## Claims
+## Access Token expiry
+
+An expiry duration of 15 minutes is recommended for Access Token expiry, to give the Seller control over the relationship.
+
+## Custom Claims
+
+**Claims** are simply key-value pairs that are included in Access Tokens and ID Tokens; each claim is "claiming" a fact about the subject \(in this case, the Seller\). For example a token may include a "claim" that the Seller has a website URL of "https://example.com".
 
 ### ID Token claims
 
-The ID Token is designed to be read by the Booking Partner to give them information about the Seller that has just authenticated.
+The ID Token is designed to be read by the Booking Partner to give them information about the Seller that has just authenticated.  This allows the Booking Partner to store the Access Token and Refresh Token against the correct SellerId in their database, so they can use these when booking the Seller's opportunities.
 
 The `openactive-openbooking` scope includes an implicit request that claims listed below are included in the ID Token.
 
-The following claims are for use by the booking partner, and must conform to the custom claim names specified below. The custom claim names are collision-resistant in accordance with the OIDC specification. 
+The following custom claims are for use by the booking partner, and must conform to the custom claim names specified below. The custom claim names are collision-resistant in accordance with the OIDC specification. 
 
 | Custom claim | Description | Exactly matches |
 | :--- | :--- | :--- |
@@ -120,7 +126,9 @@ The following claims are for use by the booking partner, and must conform to the
 
 ### Access Token claims
 
-These claims are only read internally by the Booking System, and so are simply a recommendation. Hence the claim names do not need to be standardised as long as they are internally consistent.
+To help simplify the implementation, it is recommended that Access Tokens \(which are used to authenticate each request\) include the following custom claims.
+
+The Access Token is only read internally by the Booking System, and so these claims are simply a recommendation. Hence the claim names do not need to be standardised as long as they are internally consistent.
 
 Additionally the **Access Token** may be either a [self-contained or a reference token](http://docs.identityserver.io/en/latest/topics/reference_tokens.html), as it is opaque to the booking partner, however a self-contained token simplifies implementation with IdentityServer4.
 
@@ -128,41 +136,4 @@ Additionally the **Access Token** may be either a [self-contained or a reference
 | :--- | :--- | :--- |
 | `https://openactive.io/clientId` | Recommended to be used for the booking partner Client ID that requested the Access Token. Note that "[cid](https://developer.okta.com/docs/reference/api/oidc/#access-token-scopes-and-claims)", "client\_id" and similar custom claims may also be available in the libraries you are using by default, and so may be used instead. Also note that this claim is due to be featured in a future OAuth 2.0 specification: [https://tools.ietf.org/html/draft-ietf-oauth-token-exchange-19\#section-4.3](https://tools.ietf.org/html/draft-ietf-oauth-token-exchange-19#section-4.3).  | `openactive-openbooking` and `openactive-ordersfeed` |
 | `https://openactive.io/sellerId` | Recommended to be used for the Seller ID, which is useful to be provided to your endpoints to determine which seller the Access Token is intended for. It is also consistent with the claim name used in the ID Token. | `openactive-openbooking` |
-
-## Step X+1: Configuring custom claims
-
-### IdentityServer4
-
-This is achieved with a custom ProfileService:
-
-[https://stackoverflow.com/questions/44761058/how-to-add-custom-claims-to-access-token-in-identityserver4](https://stackoverflow.com/questions/44761058/how-to-add-custom-claims-to-access-token-in-identityserver4)
-
-### Auth0
-
-If you are using Auth0 for authentication, the following [rule](https://auth0.com/docs/api-auth/tutorials/adoption/scope-custom-claims) will allow the additional claims to be included in the relevant tokens:
-
-```javascript
-function (user, context, callback) {
-  const namespace = 'https://openactive.io/';
-  const sellerIdBaseUrl = 'https://example.com/api/sellers/';
-  context.accessToken[namespace + 'sellerId'] = sellerIdBaseUrl + user.user_id;
-  context.accessToken[namespace + 'clientId'] = context.clientID;
-  context.idToken[namespace + 'sellerId'] = sellerIdBaseUrl + user.user_id;
-  callback(null, user, context);
-}
-```
-
-## Using Tokens
-
-Endpoints accept tokens for each request, including the clientId and the sellerId
-
-Flowchat of different flows \(based on Stripe's graphics\)
-
-Include what "claims" are \(key value pairs\), and also what "scopes" are
-
-## Step 2: Configure AuthToken expiry
-
-An expiry duration of 15 minutes is recommended for AuthToken expiry, to give the Seller control over the relationship.
-
-[https://stackoverflow.com/questions/35304038/identityserver4-register-userservice-and-get-users-from-database-in-asp-net-core](https://stackoverflow.com/questions/35304038/identityserver4-register-userservice-and-get-users-from-database-in-asp-net-core)
 
