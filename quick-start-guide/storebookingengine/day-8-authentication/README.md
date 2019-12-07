@@ -35,7 +35,7 @@ As you have seen in Day 1 and Day 5, the `StoreBookingEngine` does not include a
 
 ## Endpoint Access Tokens
 
-An OAuth **scope** defines access to a set of endpoints \(and also expectations about claims returned, see later\). 
+An OAuth **scope** defines access to a set of endpoints \(and also expectations about claims returned, see [later](./#claims)\). 
 
 An **Access Token** that includes the required scope \(and which may be acquired via the required flow\) must be included in the Authorization header of the request to access the Open Booking API endpoints:
 
@@ -81,11 +81,13 @@ An **Access Token** that includes the required scope \(and which may be acquired
 
 To call endpoints specific to the Seller, the Booking Partner must first acquire a valid **Access Token** with an `openactive-openbooking` scope, by having the Seller complete the Authorization Code Flow. Sellers will be familiar with this flow from websites that offer "Login with my Google Account".
 
+Note however that to complete this flow, the Authorization Request must include both the `openactive-openbooking` and `openid` scopes, to ensure that an ID Token is returned.
+
 A **Refresh Token** is also provided during this flow, which allows the Booking Partner to request another Access Token once it has expired, without the Seller needing to reauthenticate.
 
-Additionally, a "one-time usage" **ID Token** is provided during this flow which contains the SellerId and other details of the Seller. This allows the Booking Partner to store the Access Token and Refresh Token against the correct SellerId in their database, so they can use it when booking the Seller's opportunities.
+Additionally, a "one-time usage" **ID Token** is provided during this flow which contains the SellerId and other details of the Seller. This allows the Booking Partner to store the Access Token and Refresh Token against the correct SellerId in their database, so they can use these when booking the Seller's opportunities.
 
-To complete this flow, the Authorization Request must include both the `openactive-openbooking` and `openid` scopes, to ensure that an ID Token is returned.
+For this flow, the OpenID Connect subject is recommended **not to be the end user** who is following the OAuth flow, but is instead the **Seller** that they represent - such that if, for example, the end user no longer works for the Seller and deletes their account, their authentication grants remain unaffected. This recommendation conforms with OpenID Connect from a technical perspective, which is useful when leveraging existing libraries.
 
 ![OpenID Connect Authorization Code Flow](../../../.gitbook/assets/authorization-code-flow-1.png)
 
@@ -97,27 +99,17 @@ To complete this flow, the Authorization Request must include only the `openacti
 
 ![Client Credentials Flow](../../../.gitbook/assets/client-credentials-flow.png)
 
-## Step X: Understanding the OAuth Subject
+## Claims
 
-The OAuth subject is recommended to not be the end user who is following the OAuth flow, but is instead the Seller that they represent - such that if, for example, the end user no longer works for the Seller and deletes their account, their authentication grants remain unaffected. This recommendation conforms with OpenID Connect from a technical perspective, which is useful when leveraging existing libraries.
+### ID Token claims
 
-## Step X: Understanding claims and scopes
+The ID Token is designed to be read by the Booking Partner to give them information about the Seller that has just authenticated.
 
-### Scopes
+The `openactive-openbooking` scope includes an implicit request that claims listed below are included in the ID Token.
 
-The `openactive-openbooking` and `openid` scopes must be used to grant access to both the OpenID Connect authorisation endpoints, and the Open Booking API endpoints.
+The following claims are for use by the booking partner, and must conform to the custom claim names specified below. The custom claim names are collision-resistant in accordance with the OIDC specification. 
 
-The `openactive-openbooking` scope also includes a request for the claims listed below.
-
-### idToken claims
-
-The idToken is designed to be read by the Booking Partner to give them information about the Seller that has just authenticated.
-
-The following claims are for use by the booking partner, and must conform to the custom claim names specified below.
-
-The custom claim name is collision-resistant in accordance with the OIDC specification. 
-
-| Claim | Description | Exactly matches |
+| Custom claim | Description | Exactly matches |
 | :--- | :--- | :--- |
 | `https://openactive.io/sellerName` | The seller name. | `name` of  `seller` |
 | `https://openactive.io/sellerLogo` | A URL of the logo of the Seller. | `logo` of  `seller` |
@@ -126,18 +118,16 @@ The custom claim name is collision-resistant in accordance with the OIDC specifi
 | `https://openactive.io/bookingServiceName` | The `name` of the Booking System | `name` of  `bookingService` |
 | `https://openactive.io/bookingServiceUrl` | The `url` of the website of the Booking System | `url` of  `bookingService` |
 
-The booking partner will include "https://openactive.io/sellerId" in the ["claims" Request Parameter](https://openid.net/specs/openid-connect-core-1_0.html#ClaimsParameter), and the booking system must include this claim when requested and may include this claim by default.
+### Access Token claims
 
-### accessToken claims
+These claims are only read internally by the Booking System, and so are simply a recommendation. Hence the claim names do not need to be standardised as long as they are internally consistent.
 
-These claims are useful for internal implementation, and are simply a recommendation. This claims do not need to be standardised as long as they are internally consistent.
+Additionally the **Access Token** may be either a [self-contained or a reference token](http://docs.identityserver.io/en/latest/topics/reference_tokens.html), as it is opaque to the booking partner, however a self-contained token simplifies implementation with IdentityServer4.
 
-Additionally the token may be either a [self-contained or reference token](http://docs.identityserver.io/en/latest/topics/reference_tokens.html), as it is opaque to the booking partner, however a self-contained token simplifies implementation with IdentityServer4.
-
-| Custom claim | Description | Flows |
+| Custom claim | Description | Scopes |
 | :--- | :--- | :--- |
-| `https://openactive.io/clientId` | Recommended to be used for the booking partner Client ID that requested the toke. Note that "[cid](https://developer.okta.com/docs/reference/api/oidc/#access-token-scopes-and-claims)", "client\_id" and similar custom claims may also be available in the libraries you are using by default, and so may be used. Also note that this claim is due to be featured in the future OAuth 2.0 specification: [https://tools.ietf.org/html/draft-ietf-oauth-token-exchange-19\#section-4.3](https://tools.ietf.org/html/draft-ietf-oauth-token-exchange-19#section-4.3).  | Authorization Code Flow and Client Credentials flow |
-| `https://openactive.io/sellerId` | Recommended to be used for the Seller ID, which is useful to be provided to your endpoints to determine which seller the authToken is intended for. It is also consistent with the claim used in the idToken. | Authorization Code Flow only |
+| `https://openactive.io/clientId` | Recommended to be used for the booking partner Client ID that requested the Access Token. Note that "[cid](https://developer.okta.com/docs/reference/api/oidc/#access-token-scopes-and-claims)", "client\_id" and similar custom claims may also be available in the libraries you are using by default, and so may be used instead. Also note that this claim is due to be featured in a future OAuth 2.0 specification: [https://tools.ietf.org/html/draft-ietf-oauth-token-exchange-19\#section-4.3](https://tools.ietf.org/html/draft-ietf-oauth-token-exchange-19#section-4.3).  | `openactive-openbooking` and `openactive-ordersfeed` |
+| `https://openactive.io/sellerId` | Recommended to be used for the Seller ID, which is useful to be provided to your endpoints to determine which seller the Access Token is intended for. It is also consistent with the claim name used in the ID Token. | `openactive-openbooking` |
 
 ## Step X+1: Configuring custom claims
 
