@@ -6,11 +6,11 @@
 
 ## Objective for Day 8
 
-Configure OpenID Connect authentication using [IdentityServer4](https://identityserver.io/) to allow Booking Partners to easily and securely gain access to book on behalf of Sellers.
+Configure OpenID Connect and OAuth 2.0 authentication using [IdentityServer4](https://identityserver.io/) to allow Booking Partners to easily and securely gain access to book on behalf of Sellers.
 
 ### Rationale
 
-[OpenID Connect](https://openid.net/connect/) is the Open Booking API recommendation for authentication, as it most easily fulfils the requirements of the specification and is also very widely supported and well understood. Security best practice recommends against creating your own security layer and instead suggests leveraging existing tried-and-tested standards and libraries. IdentityServer4 is the most widely supported option for implementing OpenID Connect in .NET.
+[OpenID Connect](https://openid.net/connect/) and OAuth 2.0 are the Open Booking API recommendation for authentication, as it most easily fulfils the requirements of the specification and is also very widely supported and well understood. Security best practice recommends against creating your own security layer and instead suggests leveraging existing tried-and-tested standards and libraries. IdentityServer4 is the most widely supported option for implementing OpenID Connect and OAuth 2.0 in .NET.
 
 ## Guides available
 
@@ -24,7 +24,7 @@ Read this page first, then jump to the appropriate guide:
 
 ## Boundaries of responsibility
 
-As you have seen in Day 1 and Day 5, the `StoreBookingEngine` does not include any authentication functionality by design. The endpoint bindings to the StoreBookingEngine accept the `clientId` and `sellerId`, which are expected to be provided by the authentication layer.  
+As you have seen in Day 1 and Day 5, the `StoreBookingEngine` does not include any authentication functionality by design. The endpoint bindings to the StoreBookingEngine accept the `clientId` and `sellerId`, which are expected to be provided by the authentication layer \(shown in red on the diagram below\).  
 
 ![Database structure to support Open Booking API](../../../.gitbook/assets/booking-system-data-structure.png)
 
@@ -33,11 +33,11 @@ As you have seen in Day 1 and Day 5, the `StoreBookingEngine` does not include a
 | AuthToken \(JWT\) | IdentityServer4 allows AuthTokens  to contain custom claims, such as the `sellerId` and `clientId`. |
 | Booking Partner \(OAuth Client\) | IdentityServer4 manages this as a table of OAuth Clients. |
 
-## OAuth Flows and Scopes
+## Endpoint Access Tokens
 
-An OAuth scope defines access to a set of endpoints and expectations about claims returned \(see later\). 
+An OAuth **scope** defines access to a set of endpoints \(and also expectations about claims returned, see later\). 
 
-The endpoints are secured using the OAuth scopes below:
+An **Access Token** that includes the required scope \(and which may be acquired via the required flow\) must be included in the Authorization header of the request to access the Open Booking API endpoints:
 
 <table>
   <thead>
@@ -77,11 +77,25 @@ The endpoints are secured using the OAuth scopes below:
       <td style="text-align:left">Orders RPDE Feed</td>
     </tr>
   </tbody>
-</table>### OpenID Connect Authorization Code Flow
+</table>### OpenID Connect Authorization Code Flow \(`openactive-openbooking`\)
 
+To call endpoints specific to the Seller, the Booking Partner must first acquire a valid **Access Token** with an `openactive-openbooking` scope, by having the Seller complete the Authorization Code Flow. Sellers will be familiar with this flow from websites that offer "Login with my Google Account".
 
+A **Refresh Token** is also provided during this flow, which allows the Booking Partner to request another Access Token once it has expired, without the Seller needing to reauthenticate.
 
-Option 2: Use OAuth flow and have this manage seller access via accessTokens and refreshTokens
+Additionally, a "one-time usage" **ID Token** is provided during this flow which contains the SellerId and other details of the Seller. This allows the Booking Partner to store the Access Token and Refresh Token against the correct SellerId in their database, so they can use it when booking the Seller's opportunities.
+
+To complete this flow, the Authorization Request must include both the `openactive-openbooking` and `openid` scopes, to ensure that an ID Token is returned.
+
+![OpenID Connect Authorization Code Flow](../../../.gitbook/assets/authorization-code-flow-1.png)
+
+### Client Credentials Flow \(`openactive-ordersfeed`\)
+
+The straightforward Client Credentials Flow can be used to retrieve an **Access Token** with an `openactive-ordersfeed` scope, which grants access to the Orders Feed endpoint as above.
+
+To complete this flow, the Authorization Request must include only the `openactive-ordersfeed` scope.
+
+![Client Credentials Flow](../../../.gitbook/assets/client-credentials-flow.png)
 
 ## Step X: Understanding the OAuth Subject
 
