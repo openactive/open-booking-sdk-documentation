@@ -24,9 +24,9 @@ Read this page first, then jump to the appropriate guide:
 
 ## Boundaries of responsibility
 
-As you have seen in Day 1 and Day 5, the `StoreBookingEngine` does not include any authentication functionality by design. The endpoint bindings to the StoreBookingEngine accept the `clientId` and `sellerId`, which are expected to be provided by the authentication layer \(shown in red on the diagram below\).  
+As you have seen in Day 1 and Day 5, the `StoreBookingEngine` does not include any authentication functionality by design. The endpoint bindings to the StoreBookingEngine accept the `clientId` and `sellerId`, which are expected to be provided by the Access Token in the authentication layer \(shown in red on the diagram below\).  
 
-![Database structure to support Open Booking API](../../../.gitbook/assets/booking-system-data-structure.png)
+![Schema to support Open Booking API](../../../.gitbook/assets/booking-system-data-structure-1.png)
 
 | Entity | Description |
 | :--- | :--- |

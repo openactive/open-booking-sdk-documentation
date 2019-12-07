@@ -12,7 +12,7 @@ With the details of the opportunity handled in Day 4, Day 5 is about ensuring th
 
 The Open Booking API includes concepts that likely map onto your existing schema, however your database schema may require slight adjustment in order to be compatible.
 
-![Database structure to support Open Booking API](../../.gitbook/assets/booking-system-data-structure.png)
+![Schema to support Open Booking API](../../.gitbook/assets/booking-system-data-structure-1.png)
 
 | Entity | Description |
 | :--- | :--- |
