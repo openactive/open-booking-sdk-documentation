@@ -158,7 +158,7 @@ Booking Systems supporting multiple Sellers should provide a view of all the Sel
 
 Booking Systems may also provide a dashboard for their own administration, with a view of all booking partners that have been registered as OAuth clients.
 
-![](../../../.gitbook/assets/new-wireframe-1-copy-1.png)
+![](../../../.gitbook/assets/new-wireframe-1-copy-2%20%281%29.png)
 
 ### Booking system supporting a single Seller
 
@@ -174,17 +174,15 @@ Open the booking partners' own settings page, available on their own website.
 
 * From a technical perspective: this simply links to the Management URL that is provided when the booking partner registers their OpenID Connect Client.
 
-### "Suspend Bookings" and "Suspend All Bookings"
+### "Suspend Bookings"
 
 Temporarily suspend new bookings and customer requested cancellations, but allow provider requested cancellations, refunds and customer notifications to continue as normal. This is designed to give the Seller a mechanism of control in the case of a contract dispute with the booking partner.
 
 * From a technical perspective: 
   * For a Seller in a booking system that supports multiple Sellers: this simply revokes the refresh token provided to the booking partner for this seller.
-  * For a Booking System administrator with multiple Sellers: this revokes all refresh tokens provided to the booking partner for every Seller, as if each Seller had individually clicked "Suspend Bookings". The Seller's own "Restore" button is disabled.
   * For a Seller in a booking system that supports a single Sellers: this revokes the booking partner's access token with the `openactive-openbooking` scope, and only permits a new access token to be generated with an `openactive-ordersfeed` scope.
 * Confirmation message: 
   * For a Seller in a booking system that supports multiple Sellers: "Warning: this will prevent any new bookings or cancellations being made to existing bookings via this booking partner. If you believe the booking partner's security has been breached, please additionally contract \[booking system support\]. Are you sure you want to continue?"
-  * For a Booking System administrator with multiple Sellers: "Warning: this will revoke all tokens for this booking partner \(which is the first step towards deleting them\). To recover from this, every Seller will need to go through an authentication flow with the Booking Partner again. If you believe the booking partner's security has been breached, consider Regenerating API Keys instead. Are you sure you want to continue?"
   * For a Seller in a booking system that supports a single Sellers: "Warning: this will prevent any new bookings or cancellations being made to existing bookings via this booking partner. If you believe the booking partner's security has been breached, consider Regenerating API Keys instead. Are you sure you want to continue?"
 
 ### "Restore"
@@ -193,7 +191,6 @@ The inverse of the "Suspend Bookings" action, to restore access to the booking p
 
 * From a technical perspective:
   * For a Seller in a booking system that supports multiple Sellers: this button simply opens the Restore Access URL provided when the booking partner registers their OpenID Connect Client, which causes them to go through the OpenID Connect flow to attain a new refresh token.
-  * For a Booking System administrator with multiple Sellers: this button permits Sellers to click "Restore".
   * For a Seller in a booking system that supports a single Sellers: this button restores ability to request an access token with the `openactive-openbooking` scope
 
 ### "Remove"
@@ -201,12 +198,12 @@ The inverse of the "Suspend Bookings" action, to restore access to the booking p
 Completely remove the booking partners' access to the Seller. This will delete all Order data from the booking partner, prevent customers from getting notifications about changes or cancellations to existing bookings that have been made via this booking partner, and prevent them getting refunds via the booking partner. Once completed, the operation is not reversible. All existing Orders for this booking partner will be converted to the booking system's native guest bookings, and customers will receive native booking system notifications via email ongoing. If permission restored to the booking partner some time later, access to previously created Orders will not be available.
 
 * From a technical perspective: This first checks that sufficient time has lapsed since "Suspend Booking" was used for the authToken to have expired, and displays a message with the remaining duration if not.  If sufficient time has lapsed, it sets all of the Seller's Orders from the booking partner in the Orders feed to "deleted", and reassigns them to be "native" booking system bookings.
-* To simplify implementation, "Remove" is only possible after the booking partner has been suspended for the full authToken expiry duration, as this removes the requirement for asynchronous logic.
+* To simplify implementation, "Remove" is only possible after the booking partner has been suspended for the full Access Token expiry duration, as this removes the requirement for asynchronous logic.
 * Includes a confirmation message: "Warning: this will transfer all bookings made via this booking partner into \[booking system\] as standard bookings, and remove the booking partner's access to make further bookings on your behalf. This cannot be undone. Are you sure you want to continue?"
 
 ### "Delete"
 
-Performs the same operation as "Remove" and then deletes the Client ID.
+Performs the same operation as "Remove" except it also revokes all access tokens and deletes the Client ID.
 
 ### "Add Booking Partner" - New Booking Partner creation
 
