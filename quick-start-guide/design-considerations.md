@@ -17,8 +17,17 @@ For context, the following are the key actors involved in a transaction using th
 | **Customer** | The user who places a booking using an application provided by a [Broker](https://www.openactive.io/open-booking-api/#dfn-broker). The [Customer](https://www.openactive.io/open-booking-api/#dfn-customer) is not necessarily the attendee, e.g. a parent may book on behalf of their child. |
 | **Broker** | The Broker is the organisation or developer providing an application that allows [Customers](https://www.openactive.io/open-booking-api/#dfn-customer) to make bookings. The third party that is granted [authentication credentials](https://www.openactive.io/open-booking-api/#authentication) should be termed a "**Booking Partner**" in any Seller-facing user-interface, and may represent more than one Customer-facing Broker. |
 | **Booking System** | The organisation or developer providing an application that maintains bookable inventory on behalf of the [Seller](https://www.openactive.io/open-booking-api/#dfn-seller). |
-| **Seller** | The organisation providing access to events or facilities via a [Booking System](https://www.openactive.io/open-booking-api/#dfn-booking-system) e.g. a leisure provider running yoga classes. |
+| **Seller** | The organisation or individual providing access to events or facilities via a [Booking System](https://www.openactive.io/open-booking-api/#dfn-booking-system) e.g. a leisure provider running yoga classes. |
 | **Payment Provider** | The notional service providing payment processing between the [Customer](https://www.openactive.io/open-booking-api/#dfn-customer), [Broker](https://www.openactive.io/open-booking-api/#dfn-broker) and [Seller](https://www.openactive.io/open-booking-api/#dfn-seller). |
+
+## Booking System Architecture
+
+Following this guide it is useful to ascertain which of the following architectures your booking system conforms to:
+
+* **Single Seller**: The booking system either supports a single Seller by design \(e.g. an agency build for a specific organisation\), or the booking system is designed to have a database provisioned for each customer \(e.g. larger leisure management solutions deployed on-premise or cloud hosted\).
+* **Multiple Sellers**: The booking system is multi-tenancy within the same database, so for example multiple Sellers are able to log in and manage sessions and facilities within the same underlying database \(e.g. a booking system targeting at a large number of small/medium size activity providers\).
+
+This will be useful when following the instructions in the guide.
 
 ## OpenActive data publishing "tick box"
 
@@ -36,33 +45,13 @@ Some booking systems offer an event-level override to "filter out" events that a
 
 ## OpenActive booking partners
 
-Booking Systems are advised **not** to use a single "tickbox" to enable Open Booking at the Seller level, and instead design around the concept of booking partner "approval".
+Booking Systems are advised **not** to use a single "tickbox" to enable Open Booking at the Seller level, and instead design around the concept of individual booking partner "approval".
 
 Open Booking is all about relationships between the Seller and individual Brokers, where the Seller remains in ultimate control of the relationship, and hence emphasising the control available over each relationship is important. The booking partner is the authenticating party, which may represent multiple Brokers.
 
-### Booking partner approval
+The preferred approach is to provide Sellers with an mechanism to approve individual booking partners within your booking system.
 
-The preferred approach is to provide Sellers with an OpenID Connect flow to approve booking partners within your booking system.
-
-![Example authorization page for a booking partner, presented by a booking system.](../.gitbook/assets/seller-authentication-diagram-1.png)
-
-### Booking partner management
-
-Booking Systems should provide a view of all approved booking partners to the Seller, with the ability to:
-
-* **Manage** - Open the booking partners' own settings page, available on their own website.
-  * From a technical perspective: this simply links to the Management URL that is provided when the booking partner registers their OpenID Connect Client.
-* **Suspend Bookings** - Temporarily suspend new bookings and customer requested cancellations, but allow provider requested cancellations, refunds and customer notifications to continue as normal. This is designed to give the Seller a mechanism of control in the case of a contract dispute with the booking partner.
-  * From a technical perspective: this simply revokes the refresh token provided to the booking partner for this seller.
-* **Restore** - the inverse of the "Suspend Bookings" action, to restore access to the booking partner to make new bookings and customer requested cancellations.
-  * From a technical perspective: this button simply opens the Restore Access URL provided when the booking partner registers their OpenID Connect Client, which causes them to go through the OpenID Connect flow to attain a new refresh token.
-* **Remove** - Completely remove the booking partners' access to the Seller. This will delete all Order data from the booking partner, prevent customers from getting notifications about changes or cancellations to existing bookings that have been made via this booking partner, and prevent them getting refunds via the booking partner. Once completed, the operation is not reversible. All existing Orders for this booking partner will be converted to the booking system's native guest bookings, and customers will receive native booking system notifications via email ongoing. If permission restored to the booking partner some time later, access to previously created Orders will not be available.
-  * From a technical perspective: This first checks that sufficient time has lapsed since "Suspend Booking" was used for the authToken to have expired, and displays a message with the remaining duration if not.  If sufficient time has lapsed, it sets all of the Seller's Orders from the booking partner in the Orders feed to "deleted", and reassigns them to be "native" booking system bookings.
-  * To simplify implementation, "Remove" is only possible after the booking partner has been suspended for the full authToken expiry duration, as this removes the requirement for asynchronous logic.
-
-Additionally the Booking System may consider providing statistics relating to bookings made via brokers within each booking partner.
-
-![](../.gitbook/assets/new-wireframe-1-7.png)
+See Authentication guide for more information.
 
 ### OpenActive booking event-level "tick box"
 

@@ -10,7 +10,7 @@ Configure OpenID Connect and OAuth 2.0 authentication using [IdentityServer4](ht
 
 ### Rationale
 
-[OpenID Connect](https://openid.net/connect/) and OAuth 2.0 are the Open Booking API recommendation for authentication, as it most easily fulfils the requirements of the specification and is also very widely supported and well understood. Security best practice recommends against creating your own security layer and instead suggests leveraging existing tried-and-tested standards and libraries. IdentityServer4 is the most widely supported option for implementing OpenID Connect and OAuth 2.0 in .NET.
+[OpenID Connect](https://openid.net/connect/) and OAuth 2.0 are the Open Booking API recommendations for authentication, as they most easily fulfils the requirements of the specification and are also very widely supported and well understood. Security best practice recommends against creating your own security layer and instead suggests leveraging existing tried-and-tested standards and libraries. IdentityServer4 is the most widely supported option for implementing OpenID Connect and OAuth 2.0 in .NET.
 
 ## Guides available
 
@@ -30,10 +30,11 @@ As you have seen in Day 1 and Day 5, the `StoreBookingEngine` does not include a
 
 | Entity | Description |
 | :--- | :--- |
-| AuthToken \(JWT\) | IdentityServer4 allows AuthTokens  to contain custom claims, such as the `sellerId` and `clientId`. |
+| Access Token \(JWT\) | IdentityServer4 allows AuthTokens  to contain custom claims, such as the `sellerId` and `clientId`. |
 | Booking Partner \(OAuth Client\) | IdentityServer4 manages this as a table of OAuth Clients. |
+| Seller | This is **only required** if the booking system supports **multiple Sellers** \(i.e. is multi-tenancy within the same database\). |
 
-## Endpoint Access Tokens
+## Endpoint Scopes
 
 An OAuth **scope** defines access to a set of endpoints \(and also expectations about claims returned, see [later](./#claims)\). 
 
@@ -42,22 +43,21 @@ An **Access Token** that includes the required scope \(and which may be acquired
 <table>
   <thead>
     <tr>
-      <th style="text-align:left">Flow</th>
       <th style="text-align:left">Scope</th>
       <th style="text-align:left">Endpoints</th>
+      <th style="text-align:left">OAuth flow used to acquire Access Token</th>
     </tr>
   </thead>
   <tbody>
     <tr>
       <td style="text-align:left">No authentication</td>
-      <td style="text-align:left">N/A</td>
       <td style="text-align:left">
         <p>Dataset Site</p>
         <p>Open Data RPDE feeds</p>
       </td>
+      <td style="text-align:left">N/A</td>
     </tr>
     <tr>
-      <td style="text-align:left">OpenID Connect Authorization Code Flow</td>
       <td style="text-align:left"><code>openactive-openbooking</code>
       </td>
       <td style="text-align:left">
@@ -69,17 +69,38 @@ An **Access Token** that includes the required scope \(and which may be acquired
         <p>Order Cancellation</p>
         <p>Order Status</p>
       </td>
+      <td style="text-align:left">
+        <p><a href="./#openid-connect-authorization-code-flow">OpenID Connect Authorization Code Flow</a>
+          <br
+          />(for multiple Sellers)</p>
+        <p></p>
+        <p><a href="./#client-credentials-flow">Client Credentials flow</a>
+          <br />(for single Seller)</p>
+      </td>
     </tr>
     <tr>
-      <td style="text-align:left">Client Credentials flow</td>
       <td style="text-align:left"><code>openactive-ordersfeed</code>
       </td>
       <td style="text-align:left">Orders RPDE Feed</td>
+      <td style="text-align:left"><a href="./#client-credentials-flow">Client Credentials flow</a>
+      </td>
+    </tr>
+    <tr>
+      <td style="text-align:left"><code>oauth-dymamic-client-update</code>
+      </td>
+      <td style="text-align:left">Dynamic Client Update</td>
+      <td style="text-align:left">N/A</td>
     </tr>
   </tbody>
-</table>### OpenID Connect Authorization Code Flow \(`openactive-openbooking`\)
+</table>## OAuth Flows
 
-To call endpoints specific to the Seller, the Booking Partner must first acquire a valid **Access Token** with an `openactive-openbooking` scope, by having the Seller complete the Authorization Code Flow. Sellers will be familiar with this flow from websites that offer "Login with my Google Account".
+The preferred approach for booking systems that support multiple Sellers is to provide your Sellers with an OpenID Connect Authorization Code flow to approve booking partners. A simplified Client Credentials flow is available for booking systems supporting a single Seller, and is also used to provide access to the Orders feed in both cases.
+
+### OpenID Connect Authorization Code Flow \(for booking systems with multiple Sellers\)
+
+To call endpoints specific to the Seller when the booking system supports multiple Sellers, the Booking Partner must first acquire a valid **Access Token** with an `openactive-openbooking` scope, by having the Seller complete the Authorization Code Flow. Sellers will be familiar with this flow from websites that offer "Login with my Google Account".
+
+![Example authorization page for a booking partner, presented by a booking system.](../../../.gitbook/assets/seller-authentication-diagram-1.png)
 
 Note however that to complete this flow, the Authorization Request must include both the `openactive-openbooking` and `openid` scopes, to ensure that an ID Token is returned.
 
@@ -91,13 +112,129 @@ For this flow, the OpenID Connect subject is recommended **not to be the end use
 
 ![OpenID Connect Authorization Code Flow](../../../.gitbook/assets/authorization-code-flow-1.png)
 
-### Client Credentials Flow \(`openactive-ordersfeed`\)
+### Client Credentials Flow \(for all booking systems\)
 
 The straightforward Client Credentials Flow can be used to retrieve an **Access Token** with an `openactive-ordersfeed` scope, which grants access to the Orders Feed endpoint as above.
+
+The Client Credentials Flow can also be used to retrieve an Access Token ****with an `openactive-openbooking` scope, for cases where the booking system only supports a single Seller.
 
 To complete this flow, the Authorization Request must include only the `openactive-ordersfeed` scope.
 
 ![Client Credentials Flow](../../../.gitbook/assets/client-credentials-flow.png)
+
+## Dynamic Client Registration Management
+
+In order to simplify implementation and administration of booking partner management, as well as to increase security, use of the [OAuth 2.0 Dynamic Client Registration Management Protocol](https://tools.ietf.org/html/rfc7592) is recommended. This does not allow the automatic creation of new booking partners \(this is a feature of the separate but related [OAuth 2.0 Dynamic Client Registration Protocol](https://tools.ietf.org/html/rfc7591)\), but instead allows  the configuration data of existing booking partners to be updated by the booking partners themselves. This approach is a leaner version of the [Dynamic Client Registration approach used by Open Banking](https://openbanking.atlassian.net/wiki/spaces/DZ/pages/937066600/Dynamic+Client+Registration+-+v3.1).
+
+The approach provides three key benefits:
+
+1. **Simplify administration**: In the absence of a developer portal, this greatly simplifying the number of fields to be copy/pasted from e-mail exchanges with each booking partner, reducing the potential for introducing configuration errors and taking unnecessary support time, and allowing the booking partner to easily make changes and amendments during their initial setup.
+2. **Simplify implementation**: The UI required for booking partner administration can be greatly simplified, as only a limited number of fields need to be configured, and a developer portal is not required.
+3. **Increase security:** The sport and physical activity sector is notorious for transmitting long-lived sensitive credentials via email. The Dynamic Client Registration Management approach ensures that the most sensitive credentials \(the "client secret"\) are not given to the Seller to be sent in an email, and are instead always transmitted securely \(via HTTPS\). A short-lived \(e.g. 48 hours\) registration access token is available to be sent via email, which creates limited exposure. The registration access token will disable all access to the booking partner if compromised, and hence facilitates detection of any attack.
+
+It is strongly recommended that ONLY the [Client Update ](https://tools.ietf.org/html/rfc7592#section-2.2)endpoint be implemented, and that it generates a new Client Secret on every call \(in accordance with the specification\).
+
+The OAuth 2.0 Dynamic Client Registration Management Protocol is [not included natively in IdentityServer4](https://github.com/IdentityServer/IdentityServer4/issues/1248), as it is generally considered an "admin" API. Hence, to simplify implementation, the StoreBookingEngine provides an endpoint binding and store for this. 
+
+## Booking partner management
+
+Assuming the booking system decides to follow the best practices outlined above according to their architecture \(single/multiple Sellers\), this section includes recommended front-end features for the administration of booking partners. 
+
+### Booking system supporting multiple Sellers
+
+For multiple Sellers, the OAuth flow is initiated by the Booking partner, and in line with other services like Google or Facebook, the Seller only sees a list of  the booking partners that they have explicitly authorised.
+
+The booking system may also choose to display a "marketplace" of all available booking partners \(based on those registered with the booking system\), however a design for this is not included here.
+
+The booking system may consider providing statistics relating to bookings made via brokers within each booking partner.
+
+#### Seller administration page
+
+Booking Systems supporting multiple Sellers should provide a view of all the Seller's approved booking partners.
+
+![](../../../.gitbook/assets/new-wireframe-1-8.png)
+
+#### Booking System administration page
+
+Booking Systems may also provide a dashboard for their own administration, with a view of all booking partners that have been registered as OAuth clients.
+
+![](../../../.gitbook/assets/new-wireframe-1-copy-1.png)
+
+### Booking system supporting a single Seller
+
+Booking Systems supporting a single Sellers should provide a view of all the Seller's approved booking partners, which is also a list of OAuth clients.
+
+![](../../../.gitbook/assets/new-wireframe-1-copy-4-1.png)
+
+Suspend Bookings revokes access to the `openactive-openbooking` scope, so that only the Orders feed is accessible.
+
+### "Manage"
+
+Open the booking partners' own settings page, available on their own website.
+
+* From a technical perspective: this simply links to the Management URL that is provided when the booking partner registers their OpenID Connect Client.
+
+### "Suspend Bookings" and "Suspend All Bookings"
+
+Temporarily suspend new bookings and customer requested cancellations, but allow provider requested cancellations, refunds and customer notifications to continue as normal. This is designed to give the Seller a mechanism of control in the case of a contract dispute with the booking partner.
+
+* From a technical perspective: 
+  * For a Seller in a booking system that supports multiple Sellers: this simply revokes the refresh token provided to the booking partner for this seller.
+  * For a Booking System administrator with multiple Sellers: this revokes all refresh tokens provided to the booking partner for every Seller, as if each Seller had individually clicked "Suspend Bookings". The Seller's own "Restore" button is disabled.
+  * For a Seller in a booking system that supports a single Sellers: this revokes the booking partner's access token with the `openactive-openbooking` scope, and only permits a new access token to be generated with an `openactive-ordersfeed` scope.
+* Confirmation message: 
+  * For a Seller in a booking system that supports multiple Sellers: "Warning: this will prevent any new bookings or cancellations being made to existing bookings via this booking partner. If you believe the booking partner's security has been breached, please additionally contract \[booking system support\]. Are you sure you want to continue?"
+  * For a Booking System administrator with multiple Sellers: "Warning: this will revoke all tokens for this booking partner \(which is the first step towards deleting them\). To recover from this, every Seller will need to go through an authentication flow with the Booking Partner again. If you believe the booking partner's security has been breached, consider Regenerating API Keys instead. Are you sure you want to continue?"
+  * For a Seller in a booking system that supports a single Sellers: "Warning: this will prevent any new bookings or cancellations being made to existing bookings via this booking partner. If you believe the booking partner's security has been breached, consider Regenerating API Keys instead. Are you sure you want to continue?"
+
+### "Restore"
+
+The inverse of the "Suspend Bookings" action, to restore access to the booking partner to make new bookings and customer requested cancellations.
+
+* From a technical perspective:
+  * For a Seller in a booking system that supports multiple Sellers: this button simply opens the Restore Access URL provided when the booking partner registers their OpenID Connect Client, which causes them to go through the OpenID Connect flow to attain a new refresh token.
+  * For a Booking System administrator with multiple Sellers: this button permits Sellers to click "Restore".
+  * For a Seller in a booking system that supports a single Sellers: this button restores ability to request an access token with the `openactive-openbooking` scope
+
+### "Remove"
+
+Completely remove the booking partners' access to the Seller. This will delete all Order data from the booking partner, prevent customers from getting notifications about changes or cancellations to existing bookings that have been made via this booking partner, and prevent them getting refunds via the booking partner. Once completed, the operation is not reversible. All existing Orders for this booking partner will be converted to the booking system's native guest bookings, and customers will receive native booking system notifications via email ongoing. If permission restored to the booking partner some time later, access to previously created Orders will not be available.
+
+* From a technical perspective: This first checks that sufficient time has lapsed since "Suspend Booking" was used for the authToken to have expired, and displays a message with the remaining duration if not.  If sufficient time has lapsed, it sets all of the Seller's Orders from the booking partner in the Orders feed to "deleted", and reassigns them to be "native" booking system bookings.
+* To simplify implementation, "Remove" is only possible after the booking partner has been suspended for the full authToken expiry duration, as this removes the requirement for asynchronous logic.
+* Includes a confirmation message: "Warning: this will transfer all bookings made via this booking partner into \[booking system\] as standard bookings, and remove the booking partner's access to make further bookings on your behalf. This cannot be undone. Are you sure you want to continue?"
+
+### "Delete"
+
+Performs the same operation as "Remove" and then deletes the Client ID.
+
+### "Add Booking Partner" - New Booking Partner creation
+
+In the Booking System administration page, clicking "Add Booking Partner" should open a form that allows the E-mail address of the booking partner, and the booking partner name to be specified, with a "Create" button to continue.
+
+Once the "Create" button is pressed the Client ID and Registration Access token is generated and displayed. These are designed to be e-mailed to the Booking Partner.
+
+It is recommended that an anti-phishing notice is displayed to remind the user to only send credentials to the designated email address, to reduce the risk of the credentials being leaked to a malicious party.
+
+![](../../../.gitbook/assets/new-wireframe-1-copy-2-1.png)
+
+The booking partners name is then displayed in the Booking System administration page in a "pending" state until the Dynamic Client Update endpoint is called.
+
+### "API Key" - Booking Partner configuration updates
+
+Clicking the "API Key" button of the Booking Partner within the Booking System administration page displays the following:
+
+![](../../../.gitbook/assets/new-wireframe-1-copy-3-2.png)
+
+#### Generate New Registration Key
+
+The Booking Partner may request a new Registration Access Token if they wish to update their configuration and their existing token has expired.
+
+#### Regenerate all keys 
+
+Regenerates the Client Secret and the Registration Access Token. It is designed to be used in cases where the security of the booking partner is in question. The booking partner must use the newly generated Registration Access Token to retrieve a new Client Secret, in order to re-establish a connection.
+
+This displays a confirmation dialog explaining: "Warning: This will revoke all access to your booking system from the booking partner until they are able to use the newly generated Registration Access Token to regain access. Existing bookings will be unaffected. Are you sure you want to continue?".
 
 ## Access Token expiry
 
@@ -105,7 +242,7 @@ An expiry duration of 15 minutes is recommended for Access Token expiry, to give
 
 ## Custom Claims
 
-**Claims** are simply key-value pairs that are included in Access Tokens and ID Tokens; each claim is "claiming" a fact about the subject \(in this case, the Seller\). For example a token may include a "claim" that the Seller has a website URL of "https://example.com".
+**Claims** are simply key-value pairs that are included in Access Tokens and ID Tokens; each claim is "claiming" a fact about the subject \(in this case, the Seller\). For example a token may include a "claim" that the Seller has a name of "Fusion Lifestyle".
 
 ### ID Token claims
 
@@ -132,8 +269,41 @@ The Access Token is only read internally by the Booking System, and so these cla
 
 Additionally the **Access Token** may be either a [self-contained or a reference token](http://docs.identityserver.io/en/latest/topics/reference_tokens.html), as it is opaque to the booking partner, however a self-contained token simplifies implementation with IdentityServer4.
 
-| Custom claim | Description | Scopes |
-| :--- | :--- | :--- |
-| `https://openactive.io/clientId` | Recommended to be used for the booking partner Client ID that requested the Access Token. Note that "[cid](https://developer.okta.com/docs/reference/api/oidc/#access-token-scopes-and-claims)", "client\_id" and similar custom claims may also be available in the libraries you are using by default, and so may be used instead. Also note that this claim is due to be featured in a future OAuth 2.0 specification: [https://tools.ietf.org/html/draft-ietf-oauth-token-exchange-19\#section-4.3](https://tools.ietf.org/html/draft-ietf-oauth-token-exchange-19#section-4.3).  | `openactive-openbooking` and `openactive-ordersfeed` |
-| `https://openactive.io/sellerId` | Recommended to be used for the Seller ID, which is useful to be provided to your endpoints to determine which seller the Access Token is intended for. It is also consistent with the claim name used in the ID Token. | `openactive-openbooking` |
-
+<table>
+  <thead>
+    <tr>
+      <th style="text-align:left">Custom claim</th>
+      <th style="text-align:left">Description</th>
+      <th style="text-align:left">Scopes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align:left"><code>https://openactive.io/clientId</code>
+      </td>
+      <td style="text-align:left">Recommended to be used for the booking partner Client ID that requested
+        the Access Token. Note that &quot;<a href="https://developer.okta.com/docs/reference/api/oidc/#access-token-scopes-and-claims">cid</a>&quot;,
+        &quot;client_id&quot; and similar custom claims may also be available in
+        the libraries you are using by default, and so may be used instead. Also
+        note that this claim is due to be featured in a future OAuth 2.0 specification:
+        <a
+        href="https://tools.ietf.org/html/draft-ietf-oauth-token-exchange-19#section-4.3">https://tools.ietf.org/html/draft-ietf-oauth-token-exchange-19#section-4.3</a>.</td>
+      <td
+      style="text-align:left">
+        <p><code>openactive-openbooking</code> and <code>openactive-ordersfeed </code>and</p>
+        <p><code>oauth-dymamic-client-update</code>
+        </p>
+        </td>
+    </tr>
+    <tr>
+      <td style="text-align:left"><code>https://openactive.io/sellerId</code>
+      </td>
+      <td style="text-align:left">Recommended to be used for the Seller ID, which is useful to be provided
+        to your endpoints to determine which seller the Access Token is intended
+        for. It is also consistent with the claim name used in the ID Token.</td>
+      <td
+      style="text-align:left"><code>openactive-openbooking</code>
+        </td>
+    </tr>
+  </tbody>
+</table>
