@@ -4,13 +4,15 @@
 **Note: This functionality is not yet stable, and its release is pending feedback on Day 1-7, and on the** [**design**](./)**.**
 {% endhint %}
 
-Helpful links:
+## Helpful links
 
-https://auth0.com/docs/quickstart/backend/aspnet-core-webapi/01-authorization\#validate-scopes
+[http://docs.identityserver.io/en/latest/quickstarts/1\_client\_credentials.html](http://docs.identityserver.io/en/latest/quickstarts/1_client_credentials.html)
 
-https://stackoverflow.com/questions/35304038/identityserver4-register-userservice-and-get-users-from-database-in-asp-net-core
+[https://auth0.com/docs/quickstart/backend/aspnet-core-webapi/01-authorization\#validate-scopes](https://auth0.com/docs/quickstart/backend/aspnet-core-webapi/01-authorization#validate-scopes)
 
-## Step X+1: Configuring custom claims
+[https://stackoverflow.com/questions/35304038/identityserver4-register-userservice-and-get-users-from-database-in-asp-net-core](https://stackoverflow.com/questions/35304038/identityserver4-register-userservice-and-get-users-from-database-in-asp-net-core)
+
+## Configuring custom claims
 
 ### IdentityServer4
 

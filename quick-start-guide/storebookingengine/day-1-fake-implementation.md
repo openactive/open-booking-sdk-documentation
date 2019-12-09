@@ -10,7 +10,7 @@ Having a fully working implementation allows you to easily see what needs to be 
 
 ## **Step 1 - Copy files**
 
-Copy the files within the `Feeds`, `Helps`, `IdComponents`, and `Stores` directories from the [example project](https://github.com/openactive/OpenActive.Server.NET/tree/master/Examples/BookingSystem.AspNetCore) into your application, and add the dependencies [OpenActive.Server.NET](https://www.nuget.org/packages/OpenActive.Server.NET/) and [OpenActive.FakeDatabase.NET](https://www.nuget.org/packages/OpenActive.FakeDatabase.NET/).
+Copy the files within the `Feeds`, `Helpers`, `IdComponents`, `Settings`, and `Stores` directories from the [example project](https://github.com/openactive/OpenActive.Server.NET/tree/master/Examples/BookingSystem.AspNetCore) into your application, and add the dependencies [OpenActive.Server.NET](https://www.nuget.org/packages/OpenActive.Server.NET/) and [OpenActive.FakeDatabase.NET](https://www.nuget.org/packages/OpenActive.FakeDatabase.NET/).
 
 FakeDatabase.NET is an in-memory fake database that is not persisted, and will allow us to create a quick working Open Booking API.
 
@@ -28,6 +28,7 @@ Note you will be creating the following endpoints \(as per the [Open Booking API
 * Order Cancellation
 * Orders RPDE Feed
 * Order Status
+* Dynamic Client Update
 
 Additionally you will be creating two endpoints for use with the test suite \(not for use in production\):
 

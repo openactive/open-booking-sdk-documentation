@@ -124,7 +124,7 @@ To complete this flow, the Authorization Request must include only the `openacti
 
 ## Dynamic Client Registration Management
 
-In order to simplify implementation and administration of booking partner management, as well as to increase security, use of the [OAuth 2.0 Dynamic Client Registration Management Protocol](https://tools.ietf.org/html/rfc7592) is recommended. This does not allow the automatic creation of new booking partners \(this is a feature of the separate but related [OAuth 2.0 Dynamic Client Registration Protocol](https://tools.ietf.org/html/rfc7591)\), but instead allows  the configuration data of existing booking partners to be updated by the booking partners themselves. This approach is a leaner version of the [Dynamic Client Registration approach used by Open Banking](https://openbanking.atlassian.net/wiki/spaces/DZ/pages/937066600/Dynamic+Client+Registration+-+v3.1).
+In order to simplify implementation and administration of booking partner management, as well as to increase security, use of the [OAuth 2.0 Dynamic Client Registration Management Protocol](https://tools.ietf.org/html/rfc7592) is recommended. This does not allow the automatic creation of new booking partners \(this is a feature of the separate but related [OAuth 2.0 Dynamic Client Registration Protocol](https://tools.ietf.org/html/rfc7591)\), but instead allows  the configuration data of existing booking partners to be updated by the booking partners themselves using a special short-lived Registration Access Token. This approach is a leaner version of the [Dynamic Client Registration approach used by Open Banking](https://openbanking.atlassian.net/wiki/spaces/DZ/pages/937066600/Dynamic+Client+Registration+-+v3.1).
 
 The approach provides three key benefits:
 
