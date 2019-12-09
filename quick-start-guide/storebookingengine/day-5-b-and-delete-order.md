@@ -145,7 +145,7 @@ public sealed class EntityFrameworkOrderTransaction : IDatabaseTransaction
 
 ![Methods called by the StoreBookingEngine during C1 and C2](../../.gitbook/assets/copy-of-openactive-tooling-flows.png)
 
-The Open Booking API specification [provides several options for leasing](https://www.openactive.io/open-booking-api/EditorsDraft/#leasing). The implementation of each is described below.
+The Open Booking API specification [provides several options for leasing](https://www.openactive.io/open-booking-api/EditorsDraft/#leasing) an opportunity to a customer so that it cannot be booked by anyone else while the customer is completing their booking journey. The implementation of each is supported by the `StoreBookingEngine` through implementations of `BeginOrderTransaction`, `CreateLease` and `DeleteLease`, as described below.
 
 Note that leases are time-bound, and so must be cleaned up if they expire \(e.g. on a schedule\). This must be handled outside of the `StoreBookingEngine`.
 
@@ -190,7 +190,7 @@ Implement `CreateLease` to create a new lease in your database against the `flow
 
 Implement `LeaseOrderItems` for each `OpportunityStore` to add the provided list of `OrderItemContext` identified by their `RequestBookableOpportunityOfferId` to the lease identified by `flowContext.OrderId.uuid`.
 
-Implement `DeleteLease` to delete the lease based on the provided `orderId.uuid`.
+Implement `DeleteLease` to delete the lease based on the provided `orderId.uuid`, whilst always [ensuring a positive response for OrderQuote Deletion](https://www.openactive.io/open-booking-api/EditorsDraft/#orderquote-deletion), even if no lease exists.
 
 Note that a  `Lease` object must be returned from `CreateLease` in order for the `LeaseOrderItems` within each `OpportunityStore` implementation to be executed.
 
@@ -237,7 +237,7 @@ public override void DeleteLease(OrderIdComponents orderId)
 
 ### Option 3: Anonymous leasing - lease at C1 and C2
 
-Same as Option 2, without the conditional logic to return `null`.
+Same as Option 2, without the conditional logic.
 
 ```csharp
 protected override DatabaseTransaction BeginOrderTransaction(FlowStage stage)
@@ -269,9 +269,13 @@ public override void DeleteLease(OrderIdComponents orderId)
 
 ## Step 6: Run Test Suite for Leases
 
-Lease tests should pass for C1 and C2
+Lease tests should pass for C1 and C2.
 
-Lease expiry tests should also pass
+Lease expiry tests should also pass.
+
+{% hint style="info" %}
+Note the test suite does not yet include lease tests or lease expiry tests.
+{% endhint %}
 
 ## Step 7: Implement Booking
 
