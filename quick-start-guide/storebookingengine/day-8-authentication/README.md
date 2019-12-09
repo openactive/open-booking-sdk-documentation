@@ -72,10 +72,10 @@ An **Access Token** that includes the required scope \(and which may be acquired
       <td style="text-align:left">
         <p><a href="./#openid-connect-authorization-code-flow">OpenID Connect Authorization Code Flow</a>
           <br
-          />(for multiple Sellers)</p>
+          />(for Multiple Sellers)</p>
         <p></p>
         <p><a href="./#client-credentials-flow">Client Credentials flow</a>
-          <br />(for single Seller)</p>
+          <br />(for Single Seller)</p>
       </td>
     </tr>
     <tr>
@@ -140,7 +140,7 @@ The OAuth 2.0 Dynamic Client Registration Management Protocol is [not included n
 
 Assuming the booking system decides to follow the best practices outlined above according to their architecture \(single/multiple Sellers\), this section includes recommended front-end features for the administration of booking partners. 
 
-### Booking system supporting multiple Sellers
+### Booking systems supporting Multiple Sellers
 
 For multiple Sellers, the OAuth flow is initiated by the Booking partner, and in line with other services like Google or Facebook, the Seller only sees a list of  the booking partners that they have explicitly authorised.
 
@@ -160,7 +160,7 @@ Booking Systems may also provide a dashboard for their own administration, with 
 
 ![](../../../.gitbook/assets/new-wireframe-1-copy-2%20%281%29.png)
 
-### Booking system supporting a single Seller
+### Booking systems supporting a Single Seller
 
 Booking Systems supporting a single Sellers should provide a view of all the Seller's approved booking partners, which is also a list of OAuth clients.
 
@@ -179,19 +179,19 @@ Open the booking partners' own settings page, available on their own website.
 Temporarily suspend new bookings and customer requested cancellations, but allow provider requested cancellations, refunds and customer notifications to continue as normal. This is designed to give the Seller a mechanism of control in the case of a contract dispute with the booking partner.
 
 * From a technical perspective: 
-  * For a Seller in a booking system that supports multiple Sellers: this simply revokes the refresh token provided to the booking partner for this seller.
-  * For a Seller in a booking system that supports a single Sellers: this revokes the booking partner's access token with the `openactive-openbooking` scope, and only permits a new access token to be generated with an `openactive-ordersfeed` scope.
+  * Multiple Sellers: this simply revokes the refresh token provided to the booking partner for this seller.
+  * Single Seller: this revokes the booking partner's access token with the `openactive-openbooking` scope, and only permits a new access token to be generated with an `openactive-ordersfeed` scope.
 * Confirmation message: 
-  * For a Seller in a booking system that supports multiple Sellers: "Warning: this will prevent any new bookings or cancellations being made to existing bookings via this booking partner. If you believe the booking partner's security has been breached, please additionally contract \[booking system support\]. Are you sure you want to continue?"
-  * For a Seller in a booking system that supports a single Sellers: "Warning: this will prevent any new bookings or cancellations being made to existing bookings via this booking partner. If you believe the booking partner's security has been breached, consider Regenerating API Keys instead. Are you sure you want to continue?"
+  * Multiple Sellers: "Warning: this will prevent any new bookings or cancellations being made to existing bookings via this booking partner. If you believe the booking partner's security has been breached, please additionally contract \[booking system support\]. Are you sure you want to continue?"
+  * Single Seller: "Warning: this will prevent any new bookings or cancellations being made to existing bookings via this booking partner. If you believe the booking partner's security has been breached, consider Regenerating API Keys instead. Are you sure you want to continue?"
 
 ### "Restore"
 
 The inverse of the "Suspend Bookings" action, to restore access to the booking partner to make new bookings and customer requested cancellations.
 
 * From a technical perspective:
-  * For a Seller in a booking system that supports multiple Sellers: this button simply opens the Restore Access URL provided when the booking partner registers their OpenID Connect Client, which causes them to go through the OpenID Connect flow to attain a new refresh token.
-  * For a Seller in a booking system that supports a single Sellers: this button restores ability to request an access token with the `openactive-openbooking` scope
+  * Multiple Seller Mode: this button simply opens the Restore Access URL provided when the booking partner registers their OpenID Connect Client, which causes them to go through the OpenID Connect flow to attain a new refresh token.
+  * Single Seller Mode: this button restores ability to request an access token with the `openactive-openbooking` scope
 
 ### "Remove"
 

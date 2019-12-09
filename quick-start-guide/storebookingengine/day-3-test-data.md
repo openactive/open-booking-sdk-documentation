@@ -6,7 +6,7 @@ Allow the test suite to create events within the open feeds.
 
 ### Rationale
 
-In order to allow the test suite to fully test your implementation, it must be permitted to use two test endpoints to create events and delete within your database. Note these endpoints must not be available in your application in a production environment.
+In order to allow the test suite to fully test your implementation, it must be permitted to use two test endpoints to create events and delete events within your database. Note these endpoints must not be available in your application in a production environment.
 
 ## Step 1 - Inspect Test Endpoints
 
@@ -19,7 +19,7 @@ public IActionResult Post([FromServices] IBookingEngine bookingEngine, string ty
 {
     try
     {
-        return bookingEngine.CreateTestData("<client-credential>", type, @event).GetContentResult();
+        return bookingEngine.CreateTestData(type, @event).GetContentResult();
     }
     catch (OpenBookingException obe)
     {
@@ -33,7 +33,7 @@ public IActionResult Delete([FromServices] IBookingEngine bookingEngine, string 
 {
     try
     {
-        return bookingEngine.DeleteTestData("<client-credential>", type, name).GetContentResult();
+        return bookingEngine.DeleteTestData(type, name).GetContentResult();
     }
     catch (OpenBookingException obe)
     {
@@ -42,7 +42,7 @@ public IActionResult Delete([FromServices] IBookingEngine bookingEngine, string 
 }
 ```
 
-Note at this stage these endpoints are not authenticated
+Note at this stage these endpoints are not authenticated, and should not be left unsecured in production.
 
 ## Step 2 - Configure Opportunity Stores
 
@@ -50,7 +50,7 @@ The `StoreBookingEngine` handles the orchestration of the booking across various
 
 Implementations of `OpportunityStore` are therefore configured to be routed from a number of  related opportunity types, and each bookable opportunity type within your booking system must match at least one implementation of `OpportunityStore`.
 
-Within `StoreBookingEngineSettings` within `Startup.cs` or `ServiceConfig.cs` the `OpenBookingStoreRouting` setting configures the routing to the different `OpportunityStore`implementations from the `CreateTestData` and `DeleteTestData` methods being called in the controller.
+Within `StoreBookingEngineSettings` within `EngineConfig.cs`  the `OpenBookingStoreRouting` setting configures the routing to the different `OpportunityStore`implementations from the `CreateTestData` and `DeleteTestData` methods being called in the controller.
 
 ```csharp
 // List of _bookable_ opportunity types and which store to route to for each
@@ -65,14 +65,14 @@ OpenBookingStoreRouting = new Dictionary<IOpportunityStore, List<OpportunityType
 
 For this day of the guide, in each store all that is required is to implement `CreateTestDataItem` and `DeleteTestDataItem` within an implementation of the abstract `OpportunityStore` class. The other methods can simply throw `NotImplementedException`.
 
-`CreateTestDataItem` must create the opportunity that is provided, or return a 500 error if the requested opportunity type is not supported. 
+`CreateTestDataItem` must create the opportunity that is provided, or throw a `NotSupportedException` exception if the requested opportunity type is not supported. 
 
 `DeleteTestDataItem` must delete all opportunities that match the name provided.
 
 Note that the names of the items stored within the booking system may be prefixed by the test interface, where such a prefix is applied to both the event stored by `CreateTestDataItem` and event matched by `DeleteTestDataItem`.
 
 {% hint style="warning" %}
-Note that the current test suite implementation does not support prefixes, however these can be easily added on request if this is of interest.
+Note that the current test suite implementation does not support prefixes.
 {% endhint %}
 
 ## Step 4 - Run Test Suite

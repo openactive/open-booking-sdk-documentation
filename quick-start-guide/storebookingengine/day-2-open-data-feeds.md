@@ -48,14 +48,14 @@ The first URLs we'll set up are for the [Opportunity and Offer pair](https://www
 
 There are two key components that handle JSON-LD ID serialisation and deserialisation within the `StoreBookingEngine`:
 
-* **`IBookablePairIdTemplate`**s specify the ID URL templates used by your application and associates them with OpenActive opportunity types, as well as the hierarchy of types that are in use from the [OpenActive data model](https://www.openactive.io/modelling-opportunity-data/). They also define the types of opportunities that are bookable, and which feeds are used to publish the opportunities.
+* **`IBookablePairIdTemplate`** instances specify the ID URL templates used by your application and associates them with OpenActive opportunity types, as well as the hierarchy of types that are in use from the [OpenActive data model](https://www.openactive.io/modelling-opportunity-data/). They also define the types of opportunities that are bookable, and which feeds are used to publish the opportunities.
 * **`IBookableIdComponents`** are POCO objects that you define specifically based on the underlying data model within your booking system, used to deserialise the ID URL. The properties within these are mapped by name to the placeholders within the associated `IBookablePairIdTemplate` URL templates. `IBookableIdComponents` represents an [Opportunity and Offer pair](https://www.openactive.io/open-booking-api/EditorsDraft/#definition-of-a-bookable-opportunity-and-offer-pair), and hence includes _both_ the Opportunity ID and Offer ID, with their matching overlapping components.
 
 Note that the JSON-LD IDs do not need to resolve to actual endpoints, provided they are unique and exist within your domain.
 
 ### **Configuring IBookablePairIdTemplates** 
 
-`IBookablePairIdTemplate`s are configured in `Startup.cs` or `ServiceConfig.cs` within `BookingEngineSettings`:
+`IBookablePairIdTemplate` instances are configured in `Startup.cs` or `ServiceConfig.cs` within `BookingEngineSettings`:
 
 ```csharp
 new BookingEngineSettings
@@ -102,8 +102,8 @@ new BookingEngineSettings
 <table>
   <thead>
     <tr>
-      <th style="text-align:left">In the example above</th>
-      <th style="text-align:left">Description</th>
+      <th style="text-align:left">Where you these referenced in the example above...</th>
+      <th style="text-align:left">The following annotations apply...</th>
     </tr>
   </thead>
   <tbody>
@@ -205,11 +205,30 @@ public class SellerIdComponents
 }
 ```
 
-Within `BookingEngineSettings` the `SellerIdTemplate` setting controls how the Seller ID is serialised and deserialised. Depending on the type of your internal Seller ID, you may use either `SellerIdLong` or `SellerIdString` within the URL template. Once you have chosen which one to use, simply reference that same property consistently wherever you use the SellerID throughout your code, and ignore the other property.
+Within `BookingEngineSettings` the `SellerIdTemplate` setting controls how the Seller ID is serialised and deserialised. There are two options for Seller IDs: [Single Seller and Multiple Seller](../design-considerations.md#booking-system-architecture).
+
+### Booking systems supporting [Multiple Sellers](../design-considerations.md#booking-system-architecture)
+
+Depending on the type of your internal Seller ID, you may use either `SellerIdLong` or `SellerIdString` within the URL template. Once you have chosen which one to use, simply reference that same property consistently wherever you use the Seller ID throughout your code, and ignore the other property.
+
+The following example demonstrates `BookingSystemSettings` for Multiple Sellers:
 
 ```csharp
 SellerIdTemplate = new SingleIdTemplate<SellerIdComponents>(
     "{+BaseUrl}api/sellers/{SellerIdLong}"
+    ),
+```
+
+### Booking systems supporting a [Single Sellers](../design-considerations.md#booking-system-architecture)
+
+To use Single Seller mode, simply use neither `SellerIdLong` or `SellerIdString` within the URL template, and set `HasSingleSeller` to `true`. Then simply do not reference `SellerIdComponents` anywhere in your code, as both `SellerIdLong` and `SellerIdString` will be null. `RenderSingleSellerId` is provided for scenarios where a Single Seller ID needs to be rendered.
+
+The following example demonstrates `BookingSystemSettings` for a Single Seller:
+
+```csharp
+HasSingleSeller = true,
+SellerIdTemplate = new SingleIdTemplate<SellerIdComponents>(
+    "{+BaseUrl}api/seller"
     ),
 ```
 
@@ -221,7 +240,7 @@ The `StoreBookingEngine` handles the serialisation and parameter validation that
 If you have already implemented RPDE feeds within your application using [OpenActive.NET](https://github.com/openactive/OpenActive.NET), your existing database queries and OpenActive model mapping should easily transferable to within the generator method.
 {% endhint %}
 
-Within `BookingEngineSettings` within `Startup.cs` or `ServiceConfig.cs` the `OpenDataFeeds` setting configures the routing to the different feed generators from the `GetOpenDataRPDEPageForFeed` method being called in the controller.
+Within `BookingEngineSettings` within `EngineConfig.cs`  the `OpenDataFeeds` setting configures the routing to the different feed generators from the `GetOpenDataRPDEPageForFeed` method being called in the controller.
 
 ```csharp
 OpenDataFeeds = new Dictionary<OpportunityType, IOpportunityDataRPDEFeedGenerator> {
@@ -309,7 +328,11 @@ Within the mapping of your data to the OpenActive model, there are a few helper 
       </td>
     </tr>
     <tr>
-      <td style="text-align:left"><code>RenderSellerId</code>
+      <td style="text-align:left">
+        <p><code>RenderSellerId</code>
+        </p>
+        <p></p>
+        <p>(for Multiple Sellers)</p>
       </td>
       <td style="text-align:left">
         <p><code>Id = this.RenderSellerId(new SellerIdComponents</code>
@@ -322,17 +345,24 @@ Within the mapping of your data to the OpenActive model, there are a few helper 
         </p>
       </td>
     </tr>
+    <tr>
+      <td style="text-align:left"><code>RenderSingleSellerId</code>
+        <br />
+        <br />(for Single Seller)</td>
+      <td style="text-align:left"><code>Id = this.RenderSingleSellerId(),</code>
+      </td>
+    </tr>
   </tbody>
 </table>## **Step 5 - Configure Dataset Site**
 
-The `DatasetSiteGeneratorSettings` within `Startup.cs` or `ServiceConfig.cs` can be used to configure your dataset site.
+The `DatasetSiteGeneratorSettings` within `EngineConfig.cs`  can be used to configure your dataset site.
 
 Only the `OpenDataFeedBaseUrl` is used by the `StoreBookingEngine`, so this must be accurate to proceed with testing.
 
 All other settings are described within the documentation for [OpenActive.DatasetSite.NET](https://github.com/openactive/OpenActive.DatasetSite.NET#simple-implementation).
 
 {% hint style="info" %}
-If you have already implemented a dataset site within your application using OpenActive.DatasetSite.NET, the settings should be easily transferable to within `Startup.cs` or `ServiceConfig.cs`.
+If you have already implemented a dataset site within your application using OpenActive.DatasetSite.NET, the settings should be easily transferable to `EngineConfig.cs`.
 {% endhint %}
 
 ## Step 6 - Test data feeds and dataset site

@@ -6,36 +6,44 @@ Implement C1 and C2 responses without leases.
 
 ### Rationale
 
-The C1, C2 and B responses contain opportunity data that describes the bookable opportunities. This step focusses on just returning valid opportunity data and the other configuration required for C1 and C2 to return as expected.
+The C1, C2 and B responses contain opportunity data that describes the bookable opportunities. This step focusses on just returning valid opportunity data `GetOrderItem` and completing the other configuration required for C1 and C2 to return responses as expected.
 
 ## Step 1: GetOrderItem
 
 This step will implement the `GetOrderItem` within the implementations of ****`OpportunityStore` created in Day 3.
 
+```csharp
+protected override void GetOrderItem(List<OrderItemContext<SessionOpportunity>> orderItemContexts, StoreBookingFlowContext flowContext)
+{
+    ...
+}
+```
+
 The objective of `GetOrderItem` is to create a response `OrderItem` for each request `OrderItem` provided.
 
-The `OpportunityStore` deals with lists of `OrderItemContext`, where each contains a request object, along with methods to add a response object. This allows you to process each `OrderItem` individually, and also to optimise database calls where groups of `OrderItem`s \(handled by the same `OpportunityStore`\) can be retrieved together.
+The `OpportunityStore` methods generally deal with lists of `OrderItemContext`, where each contains a `OrderItem` request object, along with methods to add an `OrderItem` response object. This allows your implementation to process each `OrderItem` individually, and also to optimise database calls where groups of `OrderItem` \(if they are handled by the same `OpportunityStore`\) can be retrieved together.
 
-### OrderItemContext
+### OrderItemContext capabilities
 
-`List<OrderItemContext>` is supplied to the method, and each one of these contains:
+Each `OrderItemContext`  contains the following properties that represent the request:
 
-* **`RequestBookableOpportunityOfferId`** - The ID of the OrderItem, to be looked up in your database
-* **`RequestOrderItem`** - The OrderItem that has come from the request
+* **`RequestBookableOpportunityOfferId`** - The ID of the `OrderItem`, to be looked up in your database
+* **`RequestOrderItem`** - The `OrderItem` from the original request
 
-The context also contains the following methods, which can be used to construct a response:
+Each `OrderItemContext` also contains the following methods, which can be used to construct a response:
 
 * **`SetResponseOrderItem`** - Set the provided `OrderItem` as a response
 * **`SetResponseOrderItemAsSkeleton`** -  Create a skeleton response `OrderItem` from the request `OrderItem` \(useful for adding errors\)
 * **`AddError`** - Adds an error to the response. Note this must be called after a response exists \(i.e. after `SetResponseOrderItem` or `SetResponseOrderItemAsSkeleton`\).
-* **`ValidateAttendeeDetails`** - Automatically validates attendee details in the request and sets errors on the response based on the **response** values of `AttendeeDetailsRequired` and `OrderItemIntakeForm`.
+* **`ValidateAttendeeDetails`** - Automatically validates attendee details in the request and sets errors on the response based on the **response** values of `AttendeeDetailsRequired` and `OrderItemIntakeForm` \(it requires these response values to be set before this is called\).
 
-### Requirements
+### GetOrderItem implementation requirements
 
-Your implementation of `GetOrderItem` must achieve the following happy path:
+Your implementation of `GetOrderItem` must achieve the following behaviour:
 
-* For each `OrderItemContext` provided in the list, parse the request and set a response.
-* Note that for the common case of multi-party bookings the same `RequestBookableOpportunityOfferId` may be found across multiple `OrderItemContext`.
+* For each `OrderItemContext` provided in the list, parse the **request** and set a **response**.
+
+Note that for the common case of multi-party bookings the same `RequestBookableOpportunityOfferId` may be found across multiple `OrderItemContext`.
 
 Additionally, it must handle the following error cases using `AddError`:
 
@@ -50,13 +58,17 @@ Additionally, it must handle the following error cases using `AddError`:
 
 And optionally validate attendee details provided:
 
-* Validate any attendeeDetails provided and use `AddError` to add an `IncompleteAttendeeDetailsError`, `IncompleteIntakeFormError` or `InvalidIntakeFormError`.
+* Validate any `attendeeDetails` or `orderItemIntakeFormResponse` provided and use `AddError` to add an `IncompleteAttendeeDetailsError`, `IncompleteIntakeFormError` or `InvalidIntakeFormError`.
 * This can be achieved using `ValidateAttendeeDetails()`, with additional validation logic executed afterwards as required.
 * This is only required if your booking system supports attendee details, otherwise simply ignore these properties in the request and they will therefore not appear in the response. 
 
+{% hint style="info" %}
+Note `ValidateAttendeeDetails` is not yet implemented, pending feedback on the overall Day 1-7 approach.
+{% endhint %}
+
 ### Helpers
 
-Note that helpers available within the `OpportunityDataRPDEFeedGenerator` implementations \(from Day 2\) are also available here:
+Note that the helpers available within the `OpportunityDataRPDEFeedGenerator` implementations \(from Day 2\) are also available here:
 
 <table>
   <thead>
@@ -113,6 +125,10 @@ Note that helpers available within the `OpportunityDataRPDEFeedGenerator` implem
         <p><code>}),</code>
         </p>
       </td>
+    </tr>
+    <tr>
+      <td style="text-align:left">RenderSingleSellerId</td>
+      <td style="text-align:left"></td>
     </tr>
   </tbody>
 </table>## Step 2: Supported Fields
