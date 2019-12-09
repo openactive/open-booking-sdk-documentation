@@ -66,7 +66,7 @@ And optionally validate attendee details provided:
 Note `ValidateAttendeeDetails` is not yet implemented, pending feedback on the overall Day 1-7 approach.
 {% endhint %}
 
-### Helpers
+### Helpers available
 
 Note that the helpers available within the `OpportunityDataRPDEFeedGenerator` implementations \(from Day 2\) are also available here:
 
@@ -113,7 +113,11 @@ Note that the helpers available within the `OpportunityDataRPDEFeedGenerator` im
       </td>
     </tr>
     <tr>
-      <td style="text-align:left"><code>RenderSellerId</code>
+      <td style="text-align:left">
+        <p><code>RenderSellerId</code>
+        </p>
+        <p></p>
+        <p>(for Multiple Sellers)</p>
       </td>
       <td style="text-align:left">
         <p><code>Id = this.RenderSellerId(new SellerIdComponents</code>
@@ -127,17 +131,34 @@ Note that the helpers available within the `OpportunityDataRPDEFeedGenerator` im
       </td>
     </tr>
     <tr>
-      <td style="text-align:left">RenderSingleSellerId</td>
-      <td style="text-align:left"></td>
+      <td style="text-align:left">
+        <p><code>RenderSingleSellerId</code>
+        </p>
+        <p></p>
+        <p>(for Single Seller)</p>
+      </td>
+      <td style="text-align:left"><code>Id = this.RenderSingleSellerId(),</code>
+      </td>
     </tr>
   </tbody>
 </table>## Step 2: Supported Fields
 
-Customise the following `StoreBookingEngineSettings` within `Startup.cs` or `ServiceConfig.cs` to include only those fields that your booking system supports \(as these must be reflected back to the Broker\):
+Customise the following `StoreBookingEngineSettings` within `EngineConfig.cs` to include only those fields that your booking system supports and stores \(as only supported fields must be reflected back to the Broker\):
 
 * `CustomerPersonSupportedFields`
 * `CustomerOrganizationSupportedFields`
 * `BrokerSupportedFields`
+
+For example:
+
+```csharp
+CustomerPersonSupportedFields = p => new Person {
+    Email = p.Email,
+    GivenName = p.GivenName,
+    FamilyName = p.FamilyName,
+    Telephone = p.Telephone
+},
+```
 
 ## **Step 3: Booking Service Details**
 
@@ -145,16 +166,92 @@ Complete the details in the setting below to include information about your book
 
 * `BookingServiceDetails`
 
+For example:
+
+```csharp
+BookingServiceDetails = new BookingService
+{
+    Name = "Acme booking system",
+    Url = new Uri("https://example.com"),
+    TermsOfService = new List<Terms>
+    {
+        new PrivacyPolicy
+        {
+            Url = new Uri("https://example.com/privacy.html")
+        }
+    }
+},
+```
+
 ## **Step 4: SellerStore**
 
-Implement a new `SellerStore`, with the method `GetSeller`. This simply returns an `Organization` or `Person` that represents the the `sellerIdComponents` supplied, where the returned object must include an `Id` property representing the `sellerIdComponents` supplied.
+Implement a new `SellerStore`, with the method `GetSeller` that returns an  `Organization` or `Person` object. This object must include at least `Name` and `TaxMode` properties.
 
-Note this object must include at least `Name` and `TaxMode`.
+If the Seller is not found, simply return `null` to generate the correct `OpenBookingError`.
 
-Configure the `SellerStore` setting of  `StoreBookingEngineSettings` within `Startup.cs` or `ServiceConfig.cs` to use this new implementation of `SellerStore`.
+Configure the `SellerStore` setting of  `StoreBookingEngineSettings` within `EngineConfig.cs` to use this new implementation of `SellerStore`:
+
+```csharp
+SellerStore = new MyCustomSellerStore(),
+```
+
+### Booking systems supporting [Multiple Sellers](../design-considerations.md#booking-system-architecture)
+
+For a booking system supporting Multiple Sellers, your implementation of `GetSeller` must return an `Organization` or `Person` that represents the `sellerIdComponents` supplied, using either `SellerIdLong` or `SellerIdString` depending on your `SellerIdTemplate`.
+
+The returned object must include an `Id` property containing a URL representing the `sellerIdComponents` supplied, which can be rendered using `RenderSellerId(...)`.
+
+The following example demonstrates `GetSeller` for Multiple Sellers:
+
+```csharp
+protected override ILegalEntity GetSeller(SellerIdComponents sellerIdComponents)
+{
+    var seller = FakeBookingSystem.Database.Sellers.SingleOrDefault(x => x.Id == sellerIdComponents.SellerIdLong);
+    if (seller != null)
+    {
+        return seller.IsIndividual ? (ILegalEntity)new Person
+        {
+            Id = this.RenderSellerId(new SellerIdComponents { SellerIdLong = seller.Id }),
+            Name = seller.Name,
+            TaxMode = TaxMode.TaxGross
+        } : (ILegalEntity)new Organization
+        {
+            Id = this.RenderSellerId(new SellerIdComponents { SellerIdLong = seller.Id }),
+            Name = seller.Name,
+            TaxMode = TaxMode.TaxGross
+        };
+    }
+    else
+    {
+        return null;
+    }
+}
+```
+
+### Booking systems supporting a [Single Sellers](../design-considerations.md#booking-system-architecture)
+
+For a Single Seller booking system, your implementation of `GetSeller` must return an `Organization` or `Person` that represents the Single Seller for which your booking system is configured.
+
+In Single Seller mode both `SellerIdLong` and `SellerIdString` properties of `sellerIdComponents` will be `null`, and the data for your Seller should instead be retrieved from your booking system configuration table. 
+
+`RenderSingleSellerId()` is provided to render the `Id`.
+
+The following example demonstrates `BookingSystemSettings` for a hard-coded Single Seller:
+
+```csharp
+protected override ILegalEntity GetSeller(SellerIdComponents sellerIdComponents)
+{
+    return new Organization
+    {
+        Id = this.RenderSingleSellerId(),
+        Name = "Test Seller",
+        TaxMode = TaxMode.TaxGross
+    };
+}
+```
 
 ## **Step 5: Run Test Suite**
 
-Tests should pass for C1 and C2  
+Tests should pass for C1 and C2.  
 
 
