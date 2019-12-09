@@ -50,11 +50,11 @@ The `StoreBookingEngine` handles the orchestration of the booking across various
 
 Implementations of `OpportunityStore` are therefore configured to be routed from a number of  related opportunity types, and each bookable opportunity type within your booking system must match at least one implementation of `OpportunityStore`.
 
-Within `StoreBookingEngineSettings` within `EngineConfig.cs`  the `OpenBookingStoreRouting` setting configures the routing to the different `OpportunityStore`implementations from the `CreateTestData` and `DeleteTestData` methods being called in the controller.
+Within `StoreBookingEngineSettings` within `EngineConfig.cs`  the `OpportunityStoreRouting` setting configures the routing to the different `OpportunityStore`implementations from the `CreateTestData` and `DeleteTestData` methods being called in the controller.
 
 ```csharp
 // List of _bookable_ opportunity types and which store to route to for each
-OpenBookingStoreRouting = new Dictionary<IOpportunityStore, List<OpportunityType>> {
+OpportunityStoreRouting = new Dictionary<IOpportunityStore, List<OpportunityType>> {
     {
         new SessionStore(), new List<OpportunityType> { OpportunityType.ScheduledSession }
     }

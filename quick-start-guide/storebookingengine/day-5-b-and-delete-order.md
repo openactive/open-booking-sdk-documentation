@@ -16,8 +16,8 @@ The Open Booking API includes concepts that likely map onto your existing schema
 
 | Entity | Description |
 | :--- | :--- |
-| Order | A table representing the atomic successfully created `Order` which is the result of [**B**](https://www.openactive.io/open-booking-api/EditorsDraft/#order-creation-b). A lease flag can also be added to this table to allow it to also represent a leased `OrderQuote`, or a separate table may be used for this purpose. It likely also include the booker details. |
-| OrderItem | A table representing an individual booking of an Opportunity within an `Order`.  It likely also includes the guest checkout attendee details if these are supported. Existing "booking" or "attendee" tables may serve this purpose. Each OrderItem represents a booked space or use of [a 'bookable' Opportunity and Offer pair](https://www.openactive.io/open-booking-api/EditorsDraft/#definition-of-a-bookable-opportunity-and-offer-pair). |
+| Order | A table representing the atomic successfully created `Order` which is the result of [**B**](https://www.openactive.io/open-booking-api/EditorsDraft/#order-creation-b). A lease flag can also be added to this table to allow it to also represent a leased `OrderQuote` \(for [C1](https://www.openactive.io/open-booking-api/EditorsDraft/#orderquote-creation-c1) and [C2](https://www.openactive.io/open-booking-api/EditorsDraft/#orderquote-creation-c2)\) or a separate table may be used for this purpose. This table likely also includes the booker \(`customer`\) details. |
+| OrderItem | A table representing an individual booking of an Opportunity within an `Order`.  This table likely also includes the guest checkout `attendee` details if these are supported. Existing "booking" or "attendee" tables may serve this purpose. Each `OrderItem` represents a booked space of [a 'bookable' Opportunity and Offer pair](https://www.openactive.io/open-booking-api/EditorsDraft/#definition-of-a-bookable-opportunity-and-offer-pair). |
 | _Opportunity_ | One or many tables that represent the different [types of opportunity](https://developer.openactive.io/data-model/data-model-overview), some of which may be [bookable](https://www.openactive.io/open-booking-api/EditorsDraft/#definition-of-a-bookable-opportunity-and-offer-pair). |
 | Offer | A table or other data structure that represents the available Offers within each Opportunity |
 | Seller | A table that represents Sellers, organizations or individuals who organize the events or provide the facilities. Existing "organisation" tables may serve this purpose. This is only required if the booking system is multi-tenancy within the same database \(i.e. it supports multiple Sellers\). |
@@ -26,11 +26,11 @@ The Open Booking API includes concepts that likely map onto your existing schema
 
 ## Step 2: Understand the StoreBookingEngine booking flow
 
-The `StoreBookingEngine` handles booking of each `OrderItem`, as well as creating the overall `Lease` or `Order` within a transaction.
+The `StoreBookingEngine` handles creation of the overall Lease or Order, as well as the booking of each `OrderItem`,  within a transaction.
 
 The diagram below illustrates the abstract methods that are called by the `StoreBookingEngine`, noting that:
 
-* The `OpportunityStore` used for each set of `OrderItem`s of each opportunity type is based on the  `OpenBookingStoreRouting` configured in Day 3.
+* The `OpportunityStore` used for calls to `GetOrderItems`, `LeaseOrderItems` and `BookOrderItems` for the set of `OrderItem`s of each opportunity type is based on the  `OpportunityStoreRouting` configured in [Day 3](day-3-test-data.md).
 * The same `OrderItemContext` is passed untouched from `GetOrderItems` to either `LeaseOrderItems` or `BookOrderItems`, which allows logic to be executed inside or outside of the transaction as required.
 
 ![Methods called by the StoreBookingEngine](../../.gitbook/assets/openactive-tooling-flows.png)
@@ -39,11 +39,107 @@ The diagram below illustrates the abstract methods that are called by the `Store
 
 ## Step 3: Implement OrderStore
 
+Create a new `OrderStore` implementation with stub methods.
 
+```csharp
+public class MyCustomOrderStore : OrderStore<DatabaseTransaction>
+{
+    public override Lease CreateLease(OrderQuote orderQuote, StoreBookingFlowContext flowContext, DatabaseTransaction databaseTransaction)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override void CreateOrder(Order order, StoreBookingFlowContext flowContext, DatabaseTransaction databaseTransaction)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override bool CustomerCancelOrderItems(OrderIdComponents orderId, SellerIdComponents sellerId, OrderIdTemplate orderIdTemplate, List<OrderIdComponents> orderItemIds)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override void DeleteLease(OrderIdComponents orderId, SellerIdComponents sellerId)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override void DeleteOrder(OrderIdComponents orderId, SellerIdComponents sellerId)
+    {
+        throw new NotImplementedException();
+    }
+
+    protected override DatabaseTransaction BeginOrderTransaction(FlowStage stage)
+    {
+        throw new NotImplementedException();
+    }
+}
+```
+
+Configure the `OrderStore` setting of  `StoreBookingEngineSettings` within `EngineConfig.cs` to use this new implementation of `SellerStore`:
+
+```csharp
+OrderStore = new MyCustomOrderStore(),
+```
 
 ## Step 4: Implement Transactions
 
-Within the Orders store, implement `BeginOrderTransaction`, `CompleteOrderTransaction` and `RollbackOrderTransaction`.
+The `OrderStore` generic type has a parameter for a custom database transaction class, which can be used to wrap an existing transaction type \(such as `DbContextTransaction` within entity framework\), depending on your ORM or database.
+
+Implement a new `IDatabaseTransaction` class, ensuring that the class is `sealed`, and that `Dispose()` is implemented correctly.
+
+Within your new `OrderStore`, implement `BeginOrderTransaction` to return this new class.
+
+```csharp
+protected override EntityFrameworkOrderTransaction BeginOrderTransaction(FlowStage stage)
+{
+    return new EntityFrameworkOrderTransaction();
+}
+```
+
+### Entity Framework Example
+
+```csharp
+public sealed class EntityFrameworkOrderTransaction : IDatabaseTransaction
+{
+    private OrderContext _context;
+    private DbContextTransaction _dbContextTransaction;
+
+    public EntityFrameworkOrderTransaction()
+    {
+        _context = new OrderContext();
+        _dbContextTransaction = _context.Database.BeginTransaction();
+    }
+
+    public void Commit()
+    {
+        _context.SaveChanges();
+        _dbContextTransaction.Commit();
+    }
+
+    public void Rollback()
+    {
+        _dbContextTransaction.Rollback();
+    }
+
+    public void Dispose()
+    {
+        // Note dispose pattern of checking for null first,
+        // to ensure Dispose() is not called twice
+        if (_dbContextTransaction != null)
+        {
+            _dbContextTransaction.Dispose();
+            _dbContextTransaction = null;
+        }
+
+        if (_context != null)
+        {
+            _context.Dispose();
+            _context = null;
+        }
+    }
+}
+```
 
 ## Step 5: Implement Leasing
 
@@ -66,7 +162,7 @@ protected override DatabaseTransaction BeginOrderTransaction(FlowStage stage)
     // No lease support
     if (stage == FlowStage.B)
     {
-        return new DatabaseTransaction(FakeBookingSystem.Database);
+        return new OrderTransaction();
     }
     else
     {
@@ -103,7 +199,7 @@ protected override DatabaseTransaction BeginOrderTransaction(FlowStage stage)
 {
     if (stage != FlowStage.C1)
     {
-        return new DatabaseTransaction(FakeBookingSystem.Database);
+        return new OrderTransaction();
     }
     else
     {
@@ -146,7 +242,7 @@ Same as Option 2, without the conditional logic to return `null`.
 ```csharp
 protected override DatabaseTransaction BeginOrderTransaction(FlowStage stage)
 {
-    return new DatabaseTransaction(FakeBookingSystem.Database);
+    return new OrderTransaction();
 }
         
 public override Lease CreateLease(OrderQuote orderQuote, StoreBookingFlowContext flowContext, DatabaseTransaction databaseTransaction)

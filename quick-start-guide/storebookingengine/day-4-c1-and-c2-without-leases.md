@@ -189,7 +189,7 @@ Implement a new `SellerStore`, with the method `GetSeller` that returns an  `Org
 
 If the Seller is not found, simply return `null` to generate the correct `OpenBookingError`.
 
-Configure the `SellerStore` setting of  `StoreBookingEngineSettings` within `EngineConfig.cs` to use this new implementation of `SellerStore`:
+Configure the `SellerStore` setting of  `BookingEngineSettings` within `EngineConfig.cs` to use this new implementation of `SellerStore`:
 
 ```csharp
 SellerStore = new MyCustomSellerStore(),
