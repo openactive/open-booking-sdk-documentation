@@ -47,6 +47,8 @@ Note that for the common case of multi-party bookings the same `RequestBookableO
 
 Additionally, it must handle the following error cases using `AddError`. Note that depending on the architecture of the booking system, some of these error conditions may be more reliably checked at `LeaseOrderItems` or `BookOrderItems` within the transaction \(see [Day 5](day-5-b-and-delete-order.md)\).
 
+Also note that capacity errors must take into account any opportunities that are leased by this current request's UUID \(e.g. from previous calls to C1 and C2\) and must exclude these from capacity calculations.
+
 <table>
   <thead>
     <tr>
