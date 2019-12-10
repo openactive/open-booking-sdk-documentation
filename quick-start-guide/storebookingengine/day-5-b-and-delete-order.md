@@ -298,33 +298,15 @@ Use `CreateOrder` to create the `Order` that will feature in your Orders feed. `
 
 To cater for edge cases: `CreateOrder` also receives a mutable `responseOrder`, which is the full `Order` response created so far. Note that the `OrderItems` will be overwritten by `BookOrderItems`, but all other properties may be updated if required, or can be read if useful when creating the `Order` in the database.
 
-Use `BookOrderItems` to book the individual opportunities. `BookOrderItems` follows a similar pattern to `GetOrderItems`, using lists of mutable `OrderItemContext` as described in [Day 4](day-4-c1-and-c2-without-leases.md#orderitemcontext-capabilities). Note that as per the Open Booking API specification **all booking errors must generate an exception**; so do not use `AddError`.
+Use `BookOrderItems` to book the individual opportunities. `BookOrderItems` follows a similar pattern to `GetOrderItems`, using lists of mutable `OrderItemContext` as described in [Day 4](day-4-c1-and-c2-without-leases.md#orderitemcontext-capabilities). Note that to conform with the Open Booking API specification **all booking errors must generate an exception**; so do not use `AddError`. For errors relating to capacity throw `OpenBookingException` with `OpportunityHasInsufficientCapacityError` or `OpportunityCapacityIsReservedByLeaseError` as appropriate,  or for other errors in `BookOrderItems` throw `OpenBookingException` with `UnableToProcessOrderItemError`.
 
-`OrderItemContext` includes a method `SetOrderItemId` which **must** be used to set the `OrderItem` `Id` based on any completed bookings.
+`OrderItemContext` includes a method `SetOrderItemId` which **must** be used within `BookOrderItems` to set the `OrderItem` `Id` based on any completed bookings.
 
 `OrderStore.DeleteOrder` is called by the [Order Deletion endpoint](https://www.openactive.io/open-booking-api/EditorsDraft/#order-deletion), and must soft-delete the `Order` \(such that it appears as "deleted" within the Orders feed\).
 
-Finally, when concurrent transactions are used to write to tables that power RPDE feeds, a "modified" date must be set a few seconds into the future just before the transaction is committed, to prevent delayed item interleaving.  
-
-SetOrderItemId
-
-
-
-The flow for booking mirrors the flow for leasing, with implementations of `BeginOrderTransaction`, `CreateOrder` and `BookOrderItems`, as described below.
-
-`CreateOrder` receives an immutable `flowContext`, which contains useful properties about the `Order`, and should contain enough data to satisfy most requirements for persisting an `Order` in a database.
-
-To cater for edge cases: `CreateOrder` also receives a mutable `responseOrder`, which is the full `Order` response created so far. Note that the `OrderItems` will be overwritten by `LeaseOrderItems`, but all other properties may be updated if required, or can be read if useful when creating the lease in the database.
-
-`BookOrderItems` follows a similar pattern to `GetOrderItems`, using lists of mutable `OrderItemContext` as described in [Day 4](day-4-c1-and-c2-without-leases.md#orderitemcontext-capabilities). Note that as per the Open Booking API specification **lease errors must not generate exceptions**; instead `AddError` is useful here, as in [Day 4](day-4-c1-and-c2-without-leases.md#orderitemcontext-capabilities), for adding any `OrderItem` level leasing errors to the response.
-
-Check that there are enough spaces in total
-
-Order and Delete Order
-
-\`\`
+Finally, when concurrent transactions are used to write to tables that power RPDE feeds, there is a risk of a delayed item interleaving race condition occurring. Ensure your Orders table updates \(and Orders RPDE query in [Day 6](day-6-orders-feed.md)\) implement the [prevention strategies outlined here](https://developer.openactive.io/publishing-data/data-feeds/implementing-rpde-feeds#transactions-preventing-delayed-item-interleaving). 
 
 ## Step **8**: Run Test Suite for Booking
 
-Tests should pass for B
+Tests should pass for C1, C2 and B.
 
