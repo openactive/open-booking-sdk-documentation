@@ -32,8 +32,9 @@ The diagram below illustrates the abstract methods that are called by the `Store
 
 * The `OpportunityStore` used for calls to `GetOrderItems`, `LeaseOrderItems` and `BookOrderItems` for the set of `OrderItem`s of each opportunity type is based on the  `OpportunityStoreRouting` configured in [Day 3](day-3-test-data.md).
 * The same `OrderItemContext` is passed untouched from `GetOrderItems` to either `LeaseOrderItems` or `BookOrderItems`, which allows logic to be executed inside or outside of the transaction as required.
+* If an exception occurs after `BeginOrderTransaction`, `IDatabaseTransaction.Rollback()` is called.
 
-![Methods called by the StoreBookingEngine](../../.gitbook/assets/openactive-tooling-flows.png)
+![Methods called by the StoreBookingEngine](../../.gitbook/assets/openactive-tooling-flows-2.png)
 
 
 
@@ -143,7 +144,7 @@ public sealed class EntityFrameworkOrderTransaction : IDatabaseTransaction
 
 ## Step 5: Implement Leasing
 
-![Methods called by the StoreBookingEngine during C1 and C2](../../.gitbook/assets/copy-of-openactive-tooling-flows.png)
+![Methods called by the StoreBookingEngine during C1 and C2](../../.gitbook/assets/openactive-tooling-flows-lease-2.png)
 
 The Open Booking API specification [provides several options for leasing](https://www.openactive.io/open-booking-api/EditorsDraft/#leasing) an opportunity to a customer so that it cannot be booked by anyone else while the customer is completing their booking journey. The implementation of each is supported by the `StoreBookingEngine` through implementations of `BeginOrderTransaction`, `CreateLease` and `DeleteLease`, as described below.
 
@@ -279,7 +280,11 @@ Note the test suite does not yet include lease tests or lease expiry tests.
 
 ## Step 7: Implement Booking
 
-![Methods called by the StoreBookingEngine during B](../../.gitbook/assets/openactive-tooling-flows-book-1.png)
+![Methods called by the StoreBookingEngine during B](../../.gitbook/assets/openactive-tooling-flows-book-3.png)
+
+The flow for booking mirrors the flow for leasing, with implementations of `BeginOrderTransaction`, `CreateLease` and `DeleteLease`, as described below.
+
+Note that leases are time-bound, and so must be cleaned up if they expire \(e.g. on a schedule\). This must be handled outside of the `StoreBookingEngine`.
 
 Check that there are enough spaces in total
 
