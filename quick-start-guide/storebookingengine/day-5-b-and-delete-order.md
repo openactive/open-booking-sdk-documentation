@@ -1,4 +1,4 @@
-# Day 5: Leases and B
+# Day 5: Leases and Booking
 
 ## Objective for Day 5
 
@@ -6,7 +6,7 @@ Implement leasing and booking.
 
 ### Rationale
 
-With the details of the opportunity handled in Day 4, Day 5 is about ensuring that leasing and booking actually occurs.
+With the details of the opportunities and the majority of the response collated in Day 4, Day 5 is about ensuring that leasing and booking actually occurs.
 
 ## Step 1: Ensure your database has a compatible schema
 
@@ -16,7 +16,7 @@ The Open Booking API includes concepts that likely map onto your existing schema
 
 | Entity | Description |
 | :--- | :--- |
-| Order | A table representing the atomic successfully created `Order` which is the result of [**B**](https://www.openactive.io/open-booking-api/EditorsDraft/#order-creation-b). A lease flag can also be added to this table to allow it to also represent a leased `OrderQuote` \(for [C1](https://www.openactive.io/open-booking-api/EditorsDraft/#orderquote-creation-c1) and [C2](https://www.openactive.io/open-booking-api/EditorsDraft/#orderquote-creation-c2)\) or a separate table may be used for this purpose. This table likely also includes the booker \(`customer`\) details. |
+| Order | A table representing the atomic successfully created `Order` which is the result of [**B**](https://www.openactive.io/open-booking-api/EditorsDraft/#order-creation-b). A lease flag can also be added to this table to allow it to also represent a leased `OrderQuote` \(for [C1](https://www.openactive.io/open-booking-api/EditorsDraft/#orderquote-creation-c1) and [C2](https://www.openactive.io/open-booking-api/EditorsDraft/#orderquote-creation-c2)\) or a separate table may be used for this purpose. This table likely also includes the booker \(`customer`\) details. This table is important as it is used to generate the [Orders feed](https://www.openactive.io/open-booking-api/EditorsDraft/#orders-rpde-feed) \(see [Day 6](day-6-orders-feed.md) for more information\). |
 | OrderItem | A table representing an individual booking of an Opportunity within an `Order`.  This table likely also includes the guest checkout `attendee` details if these are supported. Existing "booking" or "attendee" tables may serve this purpose. Each `OrderItem` represents a booked space of [a 'bookable' Opportunity and Offer pair](https://www.openactive.io/open-booking-api/EditorsDraft/#definition-of-a-bookable-opportunity-and-offer-pair). |
 | _Opportunity_ | One or many tables that represent the different [types of opportunity](https://developer.openactive.io/data-model/data-model-overview), some of which may be [bookable](https://www.openactive.io/open-booking-api/EditorsDraft/#definition-of-a-bookable-opportunity-and-offer-pair). |
 | Offer | A table or other data structure that represents the available Offers within each Opportunity |
@@ -45,12 +45,12 @@ Create a new `OrderStore` implementation with stub methods.
 ```csharp
 public class MyCustomOrderStore : OrderStore<DatabaseTransaction>
 {
-    public override Lease CreateLease(OrderQuote orderQuote, StoreBookingFlowContext flowContext, DatabaseTransaction databaseTransaction)
+    public override Lease CreateLease(Lease lease, OrderQuote responseOrderQuote, StoreBookingFlowContext flowContext, DatabaseTransaction databaseTransaction)
     {
         throw new NotImplementedException();
     }
 
-    public override void CreateOrder(Order order, StoreBookingFlowContext flowContext, DatabaseTransaction databaseTransaction)
+    public override void CreateOrder(Order responseOrder, StoreBookingFlowContext flowContext, DatabaseTransaction databaseTransaction)
     {
         throw new NotImplementedException();
     }
@@ -146,9 +146,19 @@ public sealed class EntityFrameworkOrderTransaction : IDatabaseTransaction
 
 ![Methods called by the StoreBookingEngine during C1 and C2](../../.gitbook/assets/openactive-tooling-flows-lease-2.png)
 
-The Open Booking API specification [provides several options for leasing](https://www.openactive.io/open-booking-api/EditorsDraft/#leasing) an opportunity to a customer so that it cannot be booked by anyone else while the customer is completing their booking journey. The implementation of each is supported by the `StoreBookingEngine` through implementations of `BeginOrderTransaction`, `CreateLease` and `DeleteLease`, as described below.
+The objective of this step is to implement `CreateLease` , `LeaseOrderItems`, and `DeleteLease`, while updating `BeginOrderTransaction` if necessary.
+
+Use `CreateLease` to create an overall lease "container" for a collection of opportunities, if required by your system. `CreateLease` receives an immutable `flowContext`, which contains useful properties about the lease, and should contain enough data to satisfy most requirements for persisting a lease in a database. A Lease must be returned by `CreateLease` in order for `LeaseOrderItems` to be called.
+
+To cater for edge cases: `CreateLease` also receives a mutable `responseOrderQuote`, which is the full `OrderQuote` response created so far. Note that the `OrderItems` will be overwritten by `LeaseOrderItems`, but all other properties may be updated if required, or can be read if useful when creating the lease "container" in the database.
 
 Note that leases are time-bound, and so must be cleaned up if they expire \(e.g. on a schedule\). This must be handled outside of the `StoreBookingEngine`.
+
+Use `LeaseOrderItems` to lease the individual opportunities. `LeaseOrderItems` follows a similar pattern to `GetOrderItems`, using lists of mutable `OrderItemContext` as described in [Day 4](day-4-c1-and-c2-without-leases.md#orderitemcontext-capabilities). Note that as per the Open Booking API specification **lease errors must not generate exceptions**; instead `AddError` is useful here, as in [Day 4](day-4-c1-and-c2-without-leases.md#orderitemcontext-capabilities), for adding any `OrderItem` level leasing errors to the response.
+
+`DeleteLease` is called by the [OrderQuote Deletion endpoint](https://www.openactive.io/open-booking-api/EditorsDraft/#orderquote-deletion).
+
+The Open Booking API specification [provides several options for leasing](https://www.openactive.io/open-booking-api/EditorsDraft/#leasing) an opportunity to a customer so that it cannot be booked by anyone else while the customer is completing their booking journey. The implementation of each is supported by the `StoreBookingEngine` through varying implementations of `BeginOrderTransaction`, `CreateLease` and `DeleteLease`, as described below.
 
 ### Option 1: Disable leasing
 
@@ -282,13 +292,33 @@ Note the test suite does not yet include lease tests or lease expiry tests.
 
 ![Methods called by the StoreBookingEngine during B](../../.gitbook/assets/openactive-tooling-flows-book-3.png)
 
-The flow for booking mirrors the flow for leasing, with implementations of `BeginOrderTransaction`, `CreateLease` and `DeleteLease`, as described below.
+The objective of this step is to implement `CreateOrder` , `BookOrderItems`, and `DeleteOrder`.
+
+Use `CreateOrder` to create the `Order` that will feature in your `Orders` feed. `CreateOrder` receives an immutable `flowContext`, which contains useful properties about the `Order`, and should contain enough data to satisfy most requirements for persisting an `Order` in a database. A Lease must be returned by `CreateLease` in order for `LeaseOrderItems` to be called.
+
+To cater for edge cases: `CreateLease` also receives a mutable `responseOrderQuote`, which is the full `OrderQuote` response created so far. Note that the `OrderItems` will be overwritten by `LeaseOrderItems`, but all other properties may be updated if required, or can be read if useful when creating the lease "container" in the database.
 
 Note that leases are time-bound, and so must be cleaned up if they expire \(e.g. on a schedule\). This must be handled outside of the `StoreBookingEngine`.
+
+Use `LeaseOrderItems` to lease the individual opportunities. `LeaseOrderItems` follows a similar pattern to `GetOrderItems`, using lists of mutable `OrderItemContext` as described in [Day 4](day-4-c1-and-c2-without-leases.md#orderitemcontext-capabilities). Note that as per the Open Booking API specification **lease errors must not generate exceptions**; instead `AddError` is useful here, as in [Day 4](day-4-c1-and-c2-without-leases.md#orderitemcontext-capabilities), for adding any `OrderItem` level leasing errors to the response.
+
+`DeleteLease` is called by the [OrderQuote Deletion endpoint](https://www.openactive.io/open-booking-api/EditorsDraft/#orderquote-deletion).
+
+
+
+The flow for booking mirrors the flow for leasing, with implementations of `BeginOrderTransaction`, `CreateOrder` and `BookOrderItems`, as described below.
+
+`CreateOrder` receives an immutable `flowContext`, which contains useful properties about the `Order`, and should contain enough data to satisfy most requirements for persisting an `Order` in a database.
+
+To cater for edge cases: `CreateOrder` also receives a mutable `responseOrder`, which is the full `Order` response created so far. Note that the `OrderItems` will be overwritten by `LeaseOrderItems`, but all other properties may be updated if required, or can be read if useful when creating the lease in the database.
+
+`BookOrderItems` follows a similar pattern to `GetOrderItems`, using lists of mutable `OrderItemContext` as described in [Day 4](day-4-c1-and-c2-without-leases.md#orderitemcontext-capabilities). Note that as per the Open Booking API specification **lease errors must not generate exceptions**; instead `AddError` is useful here, as in [Day 4](day-4-c1-and-c2-without-leases.md#orderitemcontext-capabilities), for adding any `OrderItem` level leasing errors to the response.
 
 Check that there are enough spaces in total
 
 Order and Delete Order
+
+`OrderStore.DeleteOrder` is called by the [Order Deletion endpoint](https://www.openactive.io/open-booking-api/EditorsDraft/#order-deletion).
 
 ## Step **8**: Run Test Suite for Booking
 

@@ -45,18 +45,89 @@ Your implementation of `GetOrderItem` must achieve the following behaviour:
 
 Note that for the common case of multi-party bookings the same `RequestBookableOpportunityOfferId` may be found across multiple `OrderItemContext`.
 
-Additionally, it must handle the following error cases using `AddError`:
+Additionally, it must handle the following error cases using `AddError`. Note that depending on the architecture of the booking system, some of these error conditions may be more reliably checked at `LeaseOrderItems` or `BookOrderItems` within the transaction \(see [Day 5](day-5-b-and-delete-order.md)\).
 
-| Error case | `AddError(...)` |
-| :--- | :--- |
-| Specified opportunity does not exist | `UnknownOpportunityDetailsError` |
-| Specified offer does not exist within that opportunity | `UnknownOfferError` |
-| Specified opportunity and offer do exist, but are not bookable for any reason | `UnavailableOpportunityError` |
-| There are conflicts between OrderItems provided e.g. if multiple opportunities use the same physical space, and may not be booked together | `OpportunityIsInConflictError` |
-| No spaces available for an opportunity | `OpportunityIsFullError` |
-| This opportunity is not from the Seller specified by `context.SellerIdComponents` | `OpportunitySellerMismatchError` |
-
-And optionally validate attendee details provided:
+<table>
+  <thead>
+    <tr>
+      <th style="text-align:left">Error case</th>
+      <th style="text-align:left"><code>AddError(...)</code>
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align:left">Specified opportunity does not exist</td>
+      <td style="text-align:left"><code>UnknownOpportunityDetailsError</code>
+      </td>
+    </tr>
+    <tr>
+      <td style="text-align:left">Specified offer does not exist within that opportunity</td>
+      <td style="text-align:left"><code>UnknownOfferError</code>
+      </td>
+    </tr>
+    <tr>
+      <td style="text-align:left">Specified opportunity and offer do exist, but are not bookable for any
+        reason</td>
+      <td style="text-align:left"><code>UnavailableOpportunityError</code>
+      </td>
+    </tr>
+    <tr>
+      <td style="text-align:left">There are conflicts between OrderItems provided e.g. if multiple opportunities
+        use the same physical space, and may not be booked together</td>
+      <td style="text-align:left"><code>OpportunityIsInConflictError</code>
+      </td>
+    </tr>
+    <tr>
+      <td style="text-align:left">No spaces available for an opportunity at all</td>
+      <td style="text-align:left"><code>OpportunityIsFullError</code>
+      </td>
+    </tr>
+    <tr>
+      <td style="text-align:left">
+        <p>Taking into account the number of <code>OrderItemContext</code> instances
+          in the list that relate to the same opportunity, there is insufficient
+          capacity to book this particular <code>OrderItemContext</code>.</p>
+        <p></p>
+        <p>As per the <a href="https://www.openactive.io/open-booking-api/EditorsDraft/#order-creation-orderitem-errors">Open Booking API specification</a>,
+          this error must only be included against the <code>OrderItemContext</code> instances
+          which are in excess of the capacity - for example in an Opportunity with
+          a <code>remainingAttendeeCapacity</code> of 2 and with 5 <code>OrderItemContext</code> instances
+          related to it, this error would only be emitted against 3 of the <code>OrderItemContext</code> instances.</p>
+      </td>
+      <td style="text-align:left"><code>OpportunityHasInsufficientCapacityError</code>
+      </td>
+    </tr>
+    <tr>
+      <td style="text-align:left">
+        <p>Taking into account the number of <code>OrderItemContext</code> instances
+          in the list that relate to the same opportunity, where is insufficient
+          capacity to book this particular <code>OrderItemContext</code> due to a lease
+          being held.</p>
+        <p></p>
+        <p>As per the <a href="https://www.openactive.io/open-booking-api/EditorsDraft/#order-creation-orderitem-errors">Open Booking API specification</a>,
+          this error must only be included against the <code>OrderItemContext</code> instances
+          which are in excess of the capacity specifically due to a lease being held
+          (instead of the error <code>OpportunityHasInsufficientCapacityError</code>)
+          - for example in an Opportunity with a <code>remainingAttendeeCapacity</code> of
+          3, with 1 additional space held by another lease, then where there are
+          9 <code>OrderItemContext</code> related to that same Opportunity, this error
+          would only be emitted against 1 of the <code>OrderItemContext</code> instances,
+          with <code>OpportunityHasInsufficientCapacityError</code> emitted against
+          the other 5 of the <code>OrderItemContext</code> instances. This helps a
+          Customer to know whether they should try again.</p>
+      </td>
+      <td style="text-align:left"><code>OpportunityCapacityIsReservedByLeaseError</code>
+      </td>
+    </tr>
+    <tr>
+      <td style="text-align:left">This opportunity is not from the Seller specified by <code>context.SellerIdComponents</code>
+      </td>
+      <td style="text-align:left"><code>OpportunitySellerMismatchError</code>
+      </td>
+    </tr>
+  </tbody>
+</table>And optionally validate attendee details provided:
 
 * Validate any `attendeeDetails` or `orderItemIntakeFormResponse` provided and use `AddError` to add an `IncompleteAttendeeDetailsError`, `IncompleteIntakeFormError` or `InvalidIntakeFormError`.
 * This can be achieved using `ValidateAttendeeDetails()`, with additional validation logic executed afterwards as required.
