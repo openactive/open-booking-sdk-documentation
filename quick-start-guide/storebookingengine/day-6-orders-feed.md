@@ -104,5 +104,7 @@ Implement the following endpoints of the test interface:
 
 ## Step 3: Run Test Suite
 
-Tests should pass for C1, C2, B and Orders Feed
+Tests should pass for C1, C2, B and Orders Feed.
+
+Note that headers are used in the tests to provide a temporary `clientId` in place of authentication credentials.
 

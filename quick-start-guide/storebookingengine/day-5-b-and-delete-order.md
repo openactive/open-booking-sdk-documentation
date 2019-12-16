@@ -42,6 +42,8 @@ The diagram below illustrates the abstract methods that are called by the `Store
 
 Create a new `OrderStore` implementation with stub methods.
 
+Note that all methods except for `CustomerCancelOrderItems` will be implemented by the end this Day 5.
+
 ```csharp
 public class MyCustomOrderStore : OrderStore<DatabaseTransaction>
 {
