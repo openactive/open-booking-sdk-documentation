@@ -280,13 +280,13 @@ public override void DeleteLease(OrderIdComponents orderId)
 
 ## Step 6: Run Test Suite for Leases
 
+{% hint style="warning" %}
+**Skip this step:** Note the test suite does not yet include lease tests or lease expiry tests.
+{% endhint %}
+
 Lease tests should pass for C1 and C2.
 
 Lease expiry tests should also pass.
-
-{% hint style="info" %}
-Note the test suite does not yet include lease tests or lease expiry tests.
-{% endhint %}
 
 ## Step 7: Implement Booking
 

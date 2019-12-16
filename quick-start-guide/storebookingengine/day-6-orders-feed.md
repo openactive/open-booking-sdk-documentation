@@ -8,9 +8,9 @@ Create an Orders RPDE feed, respecting temporary authentication credentials.
 
 The table used to store Orders should have been populated in [Day 5](day-5-b-and-delete-order.md). Day 6 exposes these Orders as an RPDE feed.
 
-## **Step 1 - Create Orders RPDE Feed Generator** 
+## **Step 1: Create Orders RPDE Feed Generator** 
 
-The `StoreBookingEngine` handles the serialisation and parameter validation that would usually be required when implementing an RPDE feed. All that is required to implement the Orders feed is to implement a single method within a new class that inherits from the abstract`IRPDEOrdersFeedIncrementingUniqueChangeNumber` or `IRPDEOrdersFeedModifiedTimestampAndIDString` classes, which are very similar to the `IOpportunityDataRPDEFeedGenerator` class from Day 2.
+The `StoreBookingEngine` handles the serialisation and parameter validation that would usually be required when implementing an RPDE feed. All that is required to implement the Orders feed is to implement a single method within a new class that inherits from the abstract`OrdersRPDEFeedIncrementingUniqueChangeNumber` or `OrdersRPDEFeedModifiedTimestampAndID` classes, which are very similar to the `IOpportunityDataRPDEFeedGenerator` class from Day 2.
 
 Within `BookingEngineSettings` within `EngineConfig.cs`  the `OrderFeedGenerator` setting configures which generator is called by the controller.
 
@@ -23,7 +23,7 @@ Two implementations of `OrdersRPDEFeedGenerator` are available depending on your
 * `OrdersRPDEFeedIncrementingUniqueChangeNumber`
 * `OrdersRPDEFeedModifiedTimestampAndID`
 
-Any of the above would require the same `GetRPDEItems` method be implemented, as below:
+Any of the above would require the same `GetRPDEItems` method be implemented, as below, noting that the feed returned should be specific to the specified `clientId`, and that updates to `customerNotice` cause an item to be updated in the RPDE feed.
 
 ```csharp
 public class AcmeOrdersFeedRPDEGenerator : OrdersRPDEFeedModifiedTimestampAndID
@@ -48,37 +48,21 @@ Within the mapping of your data to the OpenActive model, there are a few helper 
   </thead>
   <tbody>
     <tr>
-      <td style="text-align:left"><code>RenderOpportunityId</code>
+      <td style="text-align:left"><code>RenderOpportunityWithOnlyId</code>
       </td>
-      <td style="text-align:left">
-        <p><code>Id = this.RenderOpportunityId(new SessionOpportunity</code>
-        </p>
-        <p><code>{</code>
-        </p>
-        <p><code>    OpportunityType = OpportunityType.SessionSeries,</code>
-        </p>
-        <p><code>    SessionSeriesId = @class.Id</code>
-        </p>
-        <p><code>}),</code>
-        </p>
+      <td style="text-align:left"><code>OrderedItem = RenderOpportunityWithOnlyId(orderItemRow.OpportunityJsonLdType, new Uri(orderItemRow.OpportunityJsonLdId)),</code>
       </td>
     </tr>
     <tr>
-      <td style="text-align:left"><code>RenderOfferId</code>
+      <td style="text-align:left"><code>RenderOrderId</code>
       </td>
-      <td style="text-align:left">
-        <p><code>Id = this.RenderOfferId(new SessionOpportunity</code>
-        </p>
-        <p><code>{</code>
-        </p>
-        <p><code>    OfferOpportunityType = OpportunityType.SessionSeries,</code>
-        </p>
-        <p><code>    SessionSeriesId = @class.Id,</code>
-        </p>
-        <p><code>    OfferId = 0</code>
-        </p>
-        <p><code>}),</code>
-        </p>
+      <td style="text-align:left"><code>Id = this.RenderOrderId(OrderType.Order, uuid),</code>
+      </td>
+    </tr>
+    <tr>
+      <td style="text-align:left"><code>RenderOrderItemId</code>
+      </td>
+      <td style="text-align:left"><code>Id = this.RenderOrderItemId(OrderType.Order, uuid, orderItemRow.Id),</code>
       </td>
     </tr>
     <tr>
@@ -93,7 +77,7 @@ Within the mapping of your data to the OpenActive model, there are a few helper 
         </p>
         <p><code>{</code>
         </p>
-        <p><code>    SellerIdLong = seller.Id</code>
+        <p><code>    SellerIdLong = orderItemRow.sellerId</code>
         </p>
         <p><code>}),</code>
         </p>
@@ -107,23 +91,18 @@ Within the mapping of your data to the OpenActive model, there are a few helper 
       </td>
     </tr>
   </tbody>
-</table>\*\*\*\*
+</table>## Step 2: Implement Test Interface
 
-**Implement one more complex response:**
+{% hint style="warning" %}
+**Skip this step:** Note that the StoreBookingEngine does not currently support these test interfaces. These will be added to both the StoreBookingEngine and the Test Suite.
+{% endhint %}
 
-* **openActiveEngine.outputOrderFeedPage\(modified, id\)**
+Implement the following endpoints of the test interface:
 
-**Implement endpoint to test customer notice \(testCustomerNotice\)**
+* Seller requested cancellation
+* Customer notification
 
-* **\(Note it may not yet be possible to set a customer notice from inside the booking system\)**
+## Step 3: Run Test Suite
 
-**Test for customer notice should pass**   
-
-
-**Implement endpoint to test provider-side cancellation \(testCommandTriggerProviderCancellation\)**
-
-* **\(Note it may not yet be possible for provider to cancel from inside the booking system\)**
-
-**Test for provider side cancellation should pass**  
-
+Tests should pass for C1, C2, B and Orders Feed
 
