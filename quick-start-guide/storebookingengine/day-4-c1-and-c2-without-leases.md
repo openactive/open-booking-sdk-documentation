@@ -8,7 +8,42 @@ Implement C1 and C2 responses without leases.
 
 The C1, C2 and B responses contain opportunity data that describes the bookable opportunities. This step focusses on just returning valid opportunity data `GetOrderItem` and completing the other configuration required for C1 and C2 to return responses as expected.
 
-## Step 1: GetOrderItem
+## **Step 1: Set up your Order ID structure**
+
+The Order IDs are configured similarly to `SellerIdComponents`. Within `BookingEngineSettings` the `OrderIdTemplate` setting controls how the Order ID is serialised and deserialised, using the base URL defined in `OrderBaseUrl`.
+
+Note that unlike other JSON-LD IDs, the Order ID must be resolvable, and so must match the endpoint bindings configured in the controller. Hence `OrderBaseUrl` used for Order IDs instead of  `JsonLdIdBaseUrl`.
+
+There is a built-in POCO named `OrderIdComponents` that is defined as follows:
+
+```csharp
+public class OrderIdComponents
+{
+    public OrderType? OrderType { get; set; }
+    public string ClientId { get; set; }
+    public string uuid { get; set; }
+    public long? OrderItemIdLong { get; set; }
+    public string OrderItemIdString { get; set; }
+}
+```
+
+The `uuid` must be included in the `OrderIdTemplate`, as must the `OrderType` \(which is resolved to either "`order-quotes`" or "`orders`"\).
+
+Depending on the type of your internal Order Item ID, you may use either `OrderItemIdLong` or `OrderItemIdString` within the URL template. Once you have chosen which one to use, simply reference that same property consistently wherever you use the Order Item ID throughout your code, and ignore the other property.
+
+Note that the `ClientId` is reserved for use for authentication \(see [Day 8](day-8-authentication/)\), and **must not** be included in the Order ID.
+
+The following example demonstrates `BookingSystemSettings` to configure Order IDs:
+
+```csharp
+OrderBaseUrl = new Uri(baseUrl + "api/openbooking/"),
+OrderIdTemplate = new OrderIdTemplate(
+    "{+BaseUrl}{OrderType}/{uuid}",
+    "{+BaseUrl}{OrderType}/{uuid}#/orderedItems/{OrderItemIdLong}"
+    ),
+```
+
+## Step 2: GetOrderItem
 
 This step will implement the `GetOrderItem` within the implementations of ****`OpportunityStore` created in Day 3.
 
@@ -214,7 +249,7 @@ Note that the helpers available within the `OpportunityDataRPDEFeedGenerator` im
       </td>
     </tr>
   </tbody>
-</table>## Step 2: Supported Fields
+</table>## Step 3: Supported Fields
 
 Customise the following `StoreBookingEngineSettings` within `EngineConfig.cs` to include only those fields that your booking system supports and stores \(as only supported fields must be reflected back to the Broker\):
 
@@ -233,7 +268,7 @@ CustomerPersonSupportedFields = p => new Person {
 },
 ```
 
-## **Step 3: Booking Service Details**
+## **Step 4: Booking Service Details**
 
 Complete the details in the setting below to include information about your booking system:
 
@@ -256,7 +291,7 @@ BookingServiceDetails = new BookingService
 },
 ```
 
-## **Step 4: SellerStore**
+## **Step 5: SellerStore**
 
 Implement a new `SellerStore`, with the method `GetSeller` that returns an  `Organization` or `Person` object. This object must include at least `Name` and `TaxMode` properties.
 
@@ -323,7 +358,7 @@ protected override ILegalEntity GetSeller(SellerIdComponents sellerIdComponents)
 }
 ```
 
-## **Step 5: Run Test Suite**
+## **Step 6: Run Test Suite**
 
 Tests should pass for C1 and C2.  
 

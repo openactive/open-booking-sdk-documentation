@@ -306,7 +306,7 @@ Use `BookOrderItems` to book the individual opportunities. `BookOrderItems` foll
 
 Finally, when concurrent transactions are used to write to tables that power RPDE feeds, there is a risk of a delayed item interleaving race condition occurring. Ensure your Orders table updates \(and Orders RPDE query in [Day 6](day-6-orders-feed.md)\) implement the [prevention strategies outlined here](https://developer.openactive.io/publishing-data/data-feeds/implementing-rpde-feeds#transactions-preventing-delayed-item-interleaving). 
 
-## Step **8**: Run Test Suite for Booking
+## Step 8: Run Test Suite for Booking
 
 Tests should pass for C1, C2 and B.
 
