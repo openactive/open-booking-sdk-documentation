@@ -19,6 +19,5 @@
 
 ## Reference
 
-* [Settings](reference/settings.md)
 * [Dependencies](reference/dependencies.md)
 
