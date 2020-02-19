@@ -16,6 +16,7 @@
   * [Day 8: Authentication](quick-start-guide/storebookingengine/day-8-authentication/README.md)
     * [ASP.NET Core Web API v2.0](quick-start-guide/storebookingengine/day-8-authentication/dotnet-core-web-api.md)
     * [ASP.NET Framework Web API](quick-start-guide/storebookingengine/day-8-authentication/dotnet-framework.md)
+    * [PHP](quick-start-guide/storebookingengine/day-8-authentication/php.md)
 
 ## Reference
 
