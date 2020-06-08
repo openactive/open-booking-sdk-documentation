@@ -27,10 +27,11 @@ Note you will be creating the following endpoints \(as per the [Open Booking API
 * Orders RPDE Feed
 * Order Status
 
-Additionally you will be creating two endpoints for use with the test suite \(not for use in production\):
+Additionally you will be creating three endpoints for use with the [OpenActive Test Suite](https://github.com/openactive/openactive-test-suite/) that implement the [Open Booking API Test Interface](https://openactive.io/test-interface/) \(not for use in production\):
 
-* Test Harness Event Creation
-* Test Harness Event Deletion
+* Delete Test Dataset
+* Create Test Opportunity
+* Execute Action
 
 A further endpoint is required to meet the [recommendations outlined for authentication](day-8-authentication/), however this can be added as part of Day 8 as it has it is not a dependency of Days 1-7: 
 
@@ -279,74 +280,23 @@ Navigating to the Orders feed \(e.g. [https://localhost:44307/api/openbooking/or
 
 ## **Step 6 - Run Test Suite**
 
-The test suite consists of two projects:
+The Booking Engine includes full support for the [Open Booking API Test Interface](https://openactive.io/test-interface/), so running the [OpenActive Test Suite](https://github.com/openactive/openactive-test-suite/) in 'Controlled' mode is recommended.
 
-* **openactive-broker-microservice** - harvests feeds and provides long-polling endpoints to listen for specific items.
-* **openactive-integration-tests** - a series of [Mocha](https://mochajs.org/) integration tests that exercise an Open Booking API implementation.
+Follow the instructions below to set up the OpenActive Test Suite:
 
-Download both of the [Test Suite Node.js projects](https://github.com/openactive/OpenActive.Server.NET/tree/master/Test%20Suite) locally, and run the following command in both directories \(note you will need [Node.js](https://nodejs.org/en/) installed to do this - which can installed with the Visual Studio installer\):
+{% embed url="https://developer.openactive.io/open-booking-api/test-suite" %}
 
-```bash
-npm install
-```
+You will need [Node.js](https://nodejs.org/en/) installed to do this - which can installed with the Visual Studio installer.
 
-Then update the following `config/default.json` files in both projects, as follows, based on the port number and path used by your .NET application when running. Note that the `microserviceApiBase` configuration value is the URL of the `openactive-broker-microservice`, which defaults to port `3000` on your local machine.
+In Steps 5 and 6, the header configuration can use the default values in order to work with the Booking Engine, except that the Seller `@id` must be replaced with a valid Seller `@id` from your booking system.
 
-{% tabs %}
-{% tab title="openactive-broker-microservice" %}
-{% code title="config/default.json" %}
-```bash
-{
-  "microservice": {
-    "bookingApiBase": "https://localhost:44307/api/openbooking/",
-    "openFeedBase": "https://localhost:44307/feeds/"
-  }
-}
+In Step 7, your Dataset Site is automatically created and configured by the Booking Engine, so simply update the value of `datasetSiteUrl` based on the port number and path used by your .NET application when running:
+
+{% code title="./packages/openactive-broker-microservice/config/default.json \(extract\)" %}
+```text
+  "datasetSiteUrl": "https://localhost:44307/openactive"
 ```
 {% endcode %}
-{% endtab %}
 
-{% tab title="openactive-integration-tests" %}
-{% code title="config/default.json" %}
-```bash
-{
-  "tests": {
-    "bookingApiBase": "https://localhost:44307/api/openbooking/",
-    "microserviceApiBase": "http://localhost:3000/"
-  }
-}
-```
-{% endcode %}
-{% endtab %}
-{% endtabs %}
-
-### Run the Microservice
-
-With your .NET application running, execute the following command in the `openactive-broker-microservice` directory:
-
-```bash
-npm start
-```
-
-This will start to harvest the feeds from your running application. You should see log messages similar to the following:
-
-![Example log of openactive-broker-microservice](../../.gitbook/assets/screenshot-2019-11-26-at-16.13.43.png)
-
-### Run the Integration Tests
-
-With both your .NET application and `openactive-broker-microservice` running, execute the following command in the `openactive-integration-tests` directory:
-
-```bash
-npm test
-```
-
-This will execute tests against your .NET application, using the `openactive-broker-microservice` as an intermediary. You should see results similar to the following:
-
-![Result excerpt from openactive-broker-microservice ](../../.gitbook/assets/screenshot-2019-11-26-at-16.16.53.png)
-
-The `openactive-integration-tests` writes log files into the `output` directory for each test scenario, so you can see the endpoints that have been called, with both the requests sent and responses received.
-
-To understand the requests and responses, please see the [explanation](https://www.openactive.io/open-booking-api/EditorsDraft/#high-level-api-flow) in the Open Booking API specification, along with the more detailed [sequence diagram](https://www.openactive.io/open-booking-api/EditorsDraft/#step-by-step-process-description) and example [requests and responses](https://www.openactive.io/open-booking-api/EditorsDraft/#paths-and-verbs).
-
-Assuming configuration values have not been changed from the copied files, issues with the tests at this stage will very likely be due to the controller or other application configuration.
+At this stage we are still using [FakeDatabase](https://www.nuget.org/packages/OpenActive.FakeDatabase.NET/), so all tests for whichever 'implemented' features you have configured should pass. Assuming configuration values have not been changed from the copied files, issues with the tests at this stage will very likely be due to the controller or other application configuration.
 

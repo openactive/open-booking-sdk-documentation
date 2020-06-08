@@ -92,7 +92,9 @@ An **Access Token** that includes the required scope \(and which may be acquired
       <td style="text-align:left">N/A</td>
     </tr>
   </tbody>
-</table>## OAuth Flows
+</table>
+
+## OAuth Flows
 
 The preferred approach for booking systems that support multiple Sellers is to provide your Sellers with an OpenID Connect Authorization Code flow to approve booking partners. A simplified Client Credentials flow is available for booking systems supporting a single Seller, and is also used to provide access to the Orders feed in both cases.
 
@@ -304,3 +306,4 @@ Additionally the **Access Token** may be either a [self-contained or a reference
     </tr>
   </tbody>
 </table>
+

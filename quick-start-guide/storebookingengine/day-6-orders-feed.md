@@ -91,7 +91,9 @@ Within the mapping of your data to the OpenActive model, there are a few helper 
       </td>
     </tr>
   </tbody>
-</table>## Step 2: Implement Test Interface
+</table>
+
+## Step 2: Implement Test Interface
 
 {% hint style="warning" %}
 **Skip this step:** Note that the StoreBookingEngine does not currently support these test interfaces. These will be added to both the StoreBookingEngine and the Test Suite.

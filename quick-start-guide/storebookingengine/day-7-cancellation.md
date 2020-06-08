@@ -29,7 +29,11 @@ Note that the `OrderStore` handles customer requested cancellation, rather than 
 
 ## Step 2: Run Test Suite
 
-Tests should pass for C1, C2, B, Orders Feed and Cancellation.
+The [customer-requested-cancellation](https://github.com/openactive/openactive-test-suite/blob/master/packages/openactive-integration-tests/test/features/cancellation/customer-requested-cancellation/README.md) feature within the `openactive-integration-tests` test suite should pass.
 
-\*\*\*\*
+Run this test in isolation as follows:
+
+```text
+npm test --runInBand -- test/features/cancellation/customer-requested-cancellation/
+```
 

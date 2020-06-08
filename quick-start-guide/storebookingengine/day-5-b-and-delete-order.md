@@ -283,7 +283,7 @@ public override void DeleteLease(OrderIdComponents orderId)
 ## Step 6: Run Test Suite for Leases
 
 {% hint style="warning" %}
-**Skip this step:** Note the test suite does not yet include lease tests or lease expiry tests.
+**Skip this step:** Note the OpenActive Test Suite does not yet include lease tests or lease expiry tests.
 {% endhint %}
 
 Lease tests should pass for C1 and C2.
@@ -310,5 +310,13 @@ Finally, when concurrent transactions are used to write to tables that power RPD
 
 ## Step 8: Run Test Suite for Booking
 
-Tests should pass for C1, C2 and B.
+The [simple-book-free-opportunities](https://github.com/openactive/openactive-test-suite/blob/master/packages/openactive-integration-tests/test/features/core/simple-book-free-opportunities/README.md) and [simple-book-with-payment](https://github.com/openactive/openactive-test-suite/blob/master/packages/openactive-integration-tests/test/features/payment/simple-book-with-payment/README.md) features within the `openactive-integration-tests` test suite should pass.
+
+Run these tests in isolation as follows:
+
+```text
+npm test --runInBand -- test/features/core/simple-book-free-opportunities/ test/features/payment/simple-book-with-payment/
+```
+
+
 

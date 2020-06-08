@@ -164,7 +164,9 @@ Also note that capacity errors must take into account any opportunities that are
       </td>
     </tr>
   </tbody>
-</table>And optionally validate attendee details provided:
+</table>
+
+And optionally validate attendee details provided:
 
 * Validate any `attendeeDetails` or `orderItemIntakeFormResponse` provided and use `AddError` to add an `IncompleteAttendeeDetailsError`, `IncompleteIntakeFormError` or `InvalidIntakeFormError`.
 * This can be achieved using `ValidateAttendeeDetails()`, with additional validation logic executed afterwards as required.
@@ -249,7 +251,9 @@ Note that the helpers available within the `OpportunityDataRPDEFeedGenerator` im
       </td>
     </tr>
   </tbody>
-</table>## Step 3: Supported Fields
+</table>
+
+## Step 3: Supported Fields
 
 Customise the following `StoreBookingEngineSettings` within `EngineConfig.cs` to include only those fields that your booking system supports and stores \(as only supported fields must be reflected back to the Broker\):
 
@@ -360,6 +364,18 @@ protected override ILegalEntity GetSeller(SellerIdComponents sellerIdComponents)
 
 ## **Step 6: Run Test Suite**
 
-Tests should pass for C1 and C2.  
+The [availability-check](https://github.com/openactive/openactive-test-suite/blob/master/packages/openactive-integration-tests/test/features/core/availability-check/README.md) feature within the `openactive-integration-tests` test suite should pass.
+
+Run this test in isolation as follows:
+
+```text
+npm test --runInBand -- test/features/core/availability-check/
+```
+
+
+
+
+
+  
 
 

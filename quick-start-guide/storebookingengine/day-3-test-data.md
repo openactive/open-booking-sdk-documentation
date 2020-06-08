@@ -13,13 +13,13 @@ In order to allow the test suite to fully test your implementation, it must be p
 These endpoints are shown below, and are already configured in your controller from Day 1:
 
 ```csharp
-// POST api/openbooking/test-interface/scheduledsession
-[HttpPost("test-interface/{type}")]
-public IActionResult Post([FromServices] IBookingEngine bookingEngine, string type, [FromBody] string @event)
+// POST api/openbooking/test-interface/datasets/uat-ci/opportunities
+[HttpPost("test-interface/datasets/{testDatasetIdentifier}/opportunities")]
+public IActionResult TestInterfaceDatasetInsert([FromServices] IBookingEngine bookingEngine, string testDatasetIdentifier, [FromBody] string @event)
 {
     try
     {
-        return bookingEngine.CreateTestData(type, @event).GetContentResult();
+        return bookingEngine.InsertTestOpportunity(testDatasetIdentifier, @event).GetContentResult();
     }
     catch (OpenBookingException obe)
     {
@@ -27,13 +27,27 @@ public IActionResult Post([FromServices] IBookingEngine bookingEngine, string ty
     }
 }
 
-// DELETE api/openbooking/test-interface/scheduledsession/{name}
-[HttpDelete("test-interface/{type}/{name}")]
-public IActionResult Delete([FromServices] IBookingEngine bookingEngine, string type, string name)
+// DELETE api/openbooking/test-interface/datasets/uat-ci
+[HttpDelete("test-interface/datasets/{testDatasetIdentifier}")]
+public IActionResult TestInterfaceDatasetDelete([FromServices] IBookingEngine bookingEngine, string testDatasetIdentifier)
 {
     try
     {
-        return bookingEngine.DeleteTestData(type, name).GetContentResult();
+        return bookingEngine.DeleteTestDataset(testDatasetIdentifier).GetContentResult();
+    }
+    catch (OpenBookingException obe)
+    {
+        return obe.ErrorResponseContent.GetContentResult();
+    }
+}
+
+// POST api/openbooking/test-interface/actions
+[HttpPost("test-interface/actions")]
+public IActionResult TestInterfaceAction([FromServices] IBookingEngine bookingEngine, [FromBody] string action)
+{
+    try
+    {
+        return bookingEngine.TriggerTestAction(action).GetContentResult();
     }
     catch (OpenBookingException obe)
     {
@@ -63,19 +77,21 @@ OpportunityStoreRouting = new Dictionary<IOpportunityStore, List<OpportunityType
 
 ## Step 3 - Implement Test Interface
 
-For this day of the guide, in each store all that is required is to implement `CreateTestDataItem` and `DeleteTestDataItem` within an implementation of the abstract `OpportunityStore` class. The other methods can simply throw `NotImplementedException`.
+For this day of the guide, in each store all that is required is to implement `CreateOpportunityWithinTestDataset` and `DeleteTestDataset` within an implementation of the abstract `OpportunityStore` class. The other methods can simply throw `NotImplementedException`.
 
-`CreateTestDataItem` must create the opportunity that is provided, or throw a `NotSupportedException` exception if the requested opportunity type is not supported. 
+`CreateOpportunityWithinTestDataset` must create the opportunity that meets the [`TestOpportunityBookable`](https://openactive.io/test-interface#TestOpportunityBookable) criteria as defined in the [Open Booking API Test Interface](https://openactive.io/test-interface/), or throw a `NotSupportedException` exception if the requested opportunity type is not supported. The opportunity must be linked to the string value of `testDatasetIdentifier`, to allow it to be deleted by a call to `DeleteTestDataset`.
 
-`DeleteTestDataItem` must delete all opportunities that match the name provided.
+`DeleteTestDataset` must delete all opportunities that match the `testDatasetIdentifier` provided.
 
-Note that the names of the items stored within the booking system may be prefixed by the test interface, where such a prefix is applied to both the event stored by `CreateTestDataItem` and event matched by `DeleteTestDataItem`.
-
-{% hint style="warning" %}
-Note that the current test suite implementation does not support prefixes.
-{% endhint %}
+Note that the names of the opportunities created within the booking system may be prefixed by the booking system to make them recognisable within the UI, as the opportunities are referenced by `@id` within the test suite.
 
 ## Step 4 - Run Test Suite
 
-The "Create test event" test within the `openactive-integration-tests` test suite should pass if the implementations of `OpportunityStore` have been implemented successfully, and if the created Event correctly appears within the appropriate feed.
+The [test-interface](https://github.com/openactive/openactive-test-suite/blob/master/packages/openactive-integration-tests/test/features/core/test-interface/README.md) feature within the `openactive-integration-tests` test suite should pass if the implementations of `OpportunityStore` have been implemented successfully, and if the created opportunity correctly appears within the appropriate feed.
+
+Run this test in isolation as follows:
+
+```text
+npm test --runInBand -- test/features/core/test-interface/
+```
 

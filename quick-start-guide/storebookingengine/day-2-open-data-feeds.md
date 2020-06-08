@@ -169,7 +169,9 @@ new BookingEngineSettings
         both for serialisation and deserialisation.</td>
     </tr>
   </tbody>
-</table>### **Configuring IBookableIdComponents**
+</table>
+
+### **Configuring IBookableIdComponents**
 
  `IBookableIdComponents` are defined by the classes in the `IdComponents` directory.
 
@@ -353,7 +355,9 @@ Within the mapping of your data to the OpenActive model, there are a few helper 
       </td>
     </tr>
   </tbody>
-</table>## **Step 5 - Configure Dataset Site**
+</table>
+
+## **Step 5 - Configure Dataset Site**
 
 The `DatasetSiteGeneratorSettings` within `EngineConfig.cs`  can be used to configure your dataset site.
 

@@ -17,7 +17,8 @@ The following are required for a minimal implementation:
 * **Feeds** -  generate the RPDE feeds
 * **Stores** - methods to execute various booking operations that are executed by the **`StoreBookingEngine`**
 * **IdComponents** - customisable composite IDs to represent the key entities within your system
-* **Startup.cs** or **ServiceConfig.cs** - configuration of the **`StoreBookingEngine`**
+* **EngineConfig.cs** - configuration of the **`StoreBookingEngine`**
+* **Startup.cs** or **ServiceConfig.cs** - initialisation
 
  Additionally, the following are required to bind the **`StoreBookingEngine`** to the web framework:
 
