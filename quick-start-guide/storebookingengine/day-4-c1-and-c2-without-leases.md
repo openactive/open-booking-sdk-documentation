@@ -325,12 +325,30 @@ protected override ILegalEntity GetSeller(SellerIdComponents sellerIdComponents)
         {
             Id = this.RenderSellerId(new SellerIdComponents { SellerIdLong = seller.Id }),
             Name = seller.Name,
-            TaxMode = TaxMode.TaxGross
+            TaxMode = TaxMode.TaxGross,
+            LegalName = seller.Name,
+            Address = new PostalAddress
+            {
+                StreetAddress = "1 Fake Place",
+                AddressLocality = "Faketown",
+                AddressRegion = "Oxfordshire",
+                PostalCode = "OX1 1AA",
+                AddressCountry = "GB"
+            }
         } : (ILegalEntity)new Organization
         {
             Id = this.RenderSellerId(new SellerIdComponents { SellerIdLong = seller.Id }),
             Name = seller.Name,
-            TaxMode = TaxMode.TaxGross
+            TaxMode = TaxMode.TaxGross,
+            LegalName = seller.Name,
+            Address = new PostalAddress
+            {
+                StreetAddress = "1 Hidden Gem",
+                AddressLocality = "Another town",
+                AddressRegion = "Oxfordshire",
+                PostalCode = "OX1 1AA",
+                AddressCountry = "GB"
+            }
         };
     }
     else
@@ -340,7 +358,7 @@ protected override ILegalEntity GetSeller(SellerIdComponents sellerIdComponents)
 }
 ```
 
-### Booking systems supporting a [Single Sellers](../design-considerations.md#booking-system-architecture)
+### Booking systems supporting a [Single Seller](../design-considerations.md#booking-system-architecture)
 
 For a Single Seller booking system, your implementation of `GetSeller` must return an `Organization` or `Person` that represents the Single Seller for which your booking system is configured.
 
@@ -357,7 +375,16 @@ protected override ILegalEntity GetSeller(SellerIdComponents sellerIdComponents)
     {
         Id = this.RenderSingleSellerId(),
         Name = "Test Seller",
-        TaxMode = TaxMode.TaxGross
+        TaxMode = TaxMode.TaxGross,
+        LegalName = seller.Name,
+        Address = new PostalAddress
+        {
+            StreetAddress = "1 Hidden Gem",
+            AddressLocality = "Another town",
+            AddressRegion = "Oxfordshire",
+            PostalCode = "OX1 1AA",
+            AddressCountry = "GB"
+        }
     };
 }
 ```
