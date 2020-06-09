@@ -67,7 +67,7 @@ Each `OrderItemContext`  contains the following properties that represent the re
 
 Each `OrderItemContext` also contains the following methods, which can be used to construct a response:
 
-* **`SetResponseOrderItem`** - Set the provided `OrderItem` as a response
+* **`SetResponseOrderItem`** - Set the provided `OrderItem` as a response, and checks that the Seller provided matches that specified by `context.SellerIdComponents`.
 * **`SetResponseOrderItemAsSkeleton`** -  Create a skeleton response `OrderItem` from the request `OrderItem` \(useful for adding errors\)
 * **`AddError`** - Adds an error to the response. Note this must be called after a response exists \(i.e. after `SetResponseOrderItem` or `SetResponseOrderItemAsSkeleton`\).
 * **`ValidateAttendeeDetails`** - Automatically validates attendee details in the request and sets errors on the response based on the **response** values of `AttendeeDetailsRequired` and `OrderItemIntakeForm` \(it requires these response values to be set before this is called\).
@@ -155,12 +155,6 @@ Also note that capacity errors must take into account any opportunities that are
           Customer to know whether they should try again.</p>
       </td>
       <td style="text-align:left"><code>OpportunityCapacityIsReservedByLeaseError</code>
-      </td>
-    </tr>
-    <tr>
-      <td style="text-align:left">This opportunity is not from the Seller specified by <code>context.SellerIdComponents</code>
-      </td>
-      <td style="text-align:left"><code>OpportunitySellerMismatchError</code>
       </td>
     </tr>
   </tbody>
