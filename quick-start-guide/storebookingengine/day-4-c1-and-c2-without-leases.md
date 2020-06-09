@@ -370,7 +370,7 @@ protected override ILegalEntity GetSeller(SellerIdComponents sellerIdComponents)
         Id = this.RenderSingleSellerId(),
         Name = "Test Seller",
         TaxMode = TaxMode.TaxGross,
-        LegalName = seller.Name,
+        LegalName = "Test Seller Ltd",
         Address = new PostalAddress
         {
             StreetAddress = "1 Hidden Gem",
