@@ -8,7 +8,7 @@ The table below lists all OpenActive booking/listing system libraries:
 | :--- | :--- | :--- | :--- |
 | Open Opportunity Data Feeds | [OpenActive.NET](https://www.nuget.org/packages/OpenActive.NET/) | [openactive/models](https://packagist.org/packages/openactive/models) | [openactive](https://rubygems.org/gems/openactive) |
 | Dataset Site | [OpenActive.DatasetSite.NET](https://www.nuget.org/packages/OpenActive.DatasetSite.NET/) | [openactive/dataset-site](https://packagist.org/packages/openactive/dataset-site) | [openactive-dataset\_site](https://rubygems.org/gems/openactive-dataset_site) |
-| Open Booking SDK | [OpenActive.Server.NET](https://www.nuget.org/packages/OpenActive.Server.NET/) | `Planned` | `Planned` |
+| Open Booking SDK | [OpenActive.Server.NET](https://www.nuget.org/packages/OpenActive.Server.NET/) | N/A | N/A |
 
 \`\`
 

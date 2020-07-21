@@ -390,7 +390,7 @@ The [availability-check](https://github.com/openactive/openactive-test-suite/blo
 Run this test in isolation as follows:
 
 ```text
-npm test --runInBand -- test/features/core/availability-check/
+npm start --runInBand -- test/features/core/availability-check/
 ```
 
 

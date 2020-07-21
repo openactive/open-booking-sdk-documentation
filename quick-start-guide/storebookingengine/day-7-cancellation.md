@@ -34,6 +34,6 @@ The [customer-requested-cancellation](https://github.com/openactive/openactive-t
 Run this test in isolation as follows:
 
 ```text
-npm test --runInBand -- test/features/cancellation/customer-requested-cancellation/
+npm start --runInBand -- test/features/cancellation/customer-requested-cancellation/
 ```
 
