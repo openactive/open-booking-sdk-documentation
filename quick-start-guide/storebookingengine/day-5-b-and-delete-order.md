@@ -315,7 +315,7 @@ The [simple-book-free-opportunities](https://github.com/openactive/openactive-te
 Run these tests in isolation as follows:
 
 ```text
-npm start --runInBand -- test/features/core/simple-book-free-opportunities/ test/features/payment/simple-book-with-payment/
+npm start -- --runInBand test/features/core/simple-book-free-opportunities/ test/features/payment/simple-book-with-payment/
 ```
 
 

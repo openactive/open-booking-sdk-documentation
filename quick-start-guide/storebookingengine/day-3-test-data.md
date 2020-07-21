@@ -92,6 +92,6 @@ The [test-interface](https://github.com/openactive/openactive-test-suite/blob/ma
 Run this test in isolation as follows:
 
 ```text
-npm start --runInBand -- test/features/core/test-interface/
+npm start -- --runInBand test/features/core/test-interface/
 ```
 
