@@ -163,12 +163,8 @@ Also note that capacity errors must take into account any opportunities that are
 And optionally validate attendee details provided:
 
 * Validate any `attendeeDetails` or `orderItemIntakeFormResponse` provided and use `AddError` to add an `IncompleteAttendeeDetailsError`, `IncompleteIntakeFormError` or `InvalidIntakeFormError`.
-* This can be achieved using `ValidateAttendeeDetails()`, with additional validation logic executed afterwards as required.
+* This can be achieved using `ctx.ValidateDetails(flowContext.Stage)`, with additional validation logic executed afterwards as required.
 * This is only required if your booking system supports attendee details, otherwise simply ignore these properties in the request and they will therefore not appear in the response. 
-
-{% hint style="info" %}
-Note `ValidateAttendeeDetails` is not yet implemented, pending feedback on the overall Day 1-7 approach.
-{% endhint %}
 
 ### Helpers available
 

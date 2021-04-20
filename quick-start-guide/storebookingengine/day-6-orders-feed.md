@@ -95,10 +95,6 @@ Within the mapping of your data to the OpenActive model, there are a few helper 
 
 ## Step 2: Implement Test Interface
 
-{% hint style="warning" %}
-**Skip this step:** Note that the StoreBookingEngine does not currently support these test interfaces. These will be added to both the StoreBookingEngine and the Test Suite.
-{% endhint %}
-
 Implement the following endpoints of the test interface:
 
 * Seller requested cancellation
