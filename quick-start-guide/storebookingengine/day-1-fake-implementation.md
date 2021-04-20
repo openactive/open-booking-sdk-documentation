@@ -286,7 +286,7 @@ Follow the instructions below to set up the OpenActive Test Suite:
 
 {% embed url="https://developer.openactive.io/open-booking-api/test-suite" %}
 
-You will need [Node.js](https://nodejs.org/en/) installed to do this - which can installed with the Visual Studio installer.
+You will need [Node.js](https://nodejs.org/en/) version 14 or above installed to do this - which can installed with the Visual Studio installer.
 
 In Steps 5 and 6, the header configuration can use the default values in order to work with the Booking Engine, except that the Seller `@id` must be replaced with a valid Seller `@id` from your booking system.
 
