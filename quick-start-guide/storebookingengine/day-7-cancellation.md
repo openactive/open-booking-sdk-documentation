@@ -24,7 +24,7 @@ public override bool CustomerCancelOrderItems(OrderIdComponents orderId, SellerI
 Note that the `OrderStore` handles customer requested cancellation, rather than the `OpportunityStore`.
 
 {% hint style="info" %}
-**Feedback requested:** An option could also be available to manage this through the `OpportunityStore` using the transaction pattern similar to that used for leasing and booking in Day 5.  Would this be more useful, or too heavy-weight?
+**Feedback requested:** An alternative approach could also be supported to manage this through the `OpportunityStore` using the transaction pattern similar to that used for leasing and booking in Day 5.  Would this be more useful, or too heavy-weight?
 {% endhint %}
 
 ## Step 2: Run Test Suite
