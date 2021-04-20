@@ -33,7 +33,7 @@ Additionally you will be creating three endpoints for use with the [OpenActive T
 * Create Test Opportunity
 * Execute Action
 
-A further endpoint is required to meet the [recommendations outlined for authentication](day-8-authentication/), however this can be added as part of Day 8 as it has it is not a dependency of Days 1-7: 
+A further endpoint is required to meet the [recommendations outlined for authentication](day-8-authentication.md), however this can be added as part of Day 8 as it has it is not a dependency of Days 1-7: 
 
 * Dynamic Client Update
 
@@ -162,7 +162,7 @@ public class OpenBookingInputFormatter : MediaTypeFormatter
 
 ## **Step 4 - Authentication Helper**
 
-The Booking Engine does not handle authentication, and instead accepts claims from an authentication layer in front of it \(this will be covered in more detail in [Day 8](day-8-authentication/)\). An AuthenticationHelper is provided for .NET Core and .NET Framework that extracts OAuth 2.0 claims from access tokens, and also provides simple header alternatives to facilitate development and testing.
+The Booking Engine does not handle authentication, and instead accepts claims from an authentication layer in front of it \(this will be covered in more detail in [Day 8](day-8-authentication.md)\). An AuthenticationHelper is provided for .NET Core and .NET Framework that extracts OAuth 2.0 claims from access tokens, and also provides simple header alternatives to facilitate development and testing.
 
 Note that these test header alternatives are not secure and **must not** be used in production, however they will be used for Day 1-7 of this guide.
 

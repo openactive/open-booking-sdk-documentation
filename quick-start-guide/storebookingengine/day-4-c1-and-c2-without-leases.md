@@ -31,7 +31,7 @@ The `uuid` must be included in the `OrderIdTemplate`, as must the `OrderType` \(
 
 Depending on the type of your internal Order Item ID, you may use either `OrderItemIdLong` or `OrderItemIdString` within the URL template. Once you have chosen which one to use, simply reference that same property consistently wherever you use the Order Item ID throughout your code, and ignore the other property.
 
-Note that the `ClientId` is reserved for use for authentication \(see [Day 8](day-8-authentication/)\), and **must not** be included in the Order ID.
+Note that the `ClientId` is reserved for use for authentication \(see [Day 8](day-8-authentication.md)\), and **must not** be included in the Order ID.
 
 The following example demonstrates `BookingSystemSettings` to configure Order IDs:
 

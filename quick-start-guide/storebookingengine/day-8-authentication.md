@@ -1,9 +1,5 @@
 # Day 8: Authentication
 
-{% hint style="info" %}
-**Note: This functionality is not yet stable, and its release is pending feedback on Day 1-7, and on the design below.**
-{% endhint %}
-
 ## Objective for Day 8
 
 Configure OpenID Connect and OAuth 2.0 authentication using [IdentityServer4](https://identityserver.io/) to allow Booking Partners to easily and securely gain access to book on behalf of Sellers.
@@ -12,21 +8,11 @@ Configure OpenID Connect and OAuth 2.0 authentication using [IdentityServer4](ht
 
 [OpenID Connect](https://openid.net/connect/) and OAuth 2.0 are the Open Booking API recommendations for authentication, as they most easily fulfils the requirements of the specification and are also very widely supported and well understood. Security best practice recommends against creating your own security layer and instead suggests leveraging existing tried-and-tested standards and libraries. IdentityServer4 is the most widely supported option for implementing OpenID Connect and OAuth 2.0 in .NET.
 
-## Guides available
-
-This page covers the overall approach to using OAuth 2.0 and OpenID Connect for the Open Booking API. 
-
-Read this page first, then jump to the appropriate guide:
-
-{% page-ref page="dotnet-core-web-api.md" %}
-
-{% page-ref page="dotnet-framework.md" %}
-
 ## Boundaries of responsibility
 
 As you have seen in Day 1 and Day 5, the `StoreBookingEngine` does not include any authentication functionality by design. The endpoint bindings to the StoreBookingEngine accept the `clientId` and `sellerId`, which are expected to be provided by the Access Token in the authentication layer \(shown in red on the diagram below\).  
 
-![Schema to support Open Booking API](../../../.gitbook/assets/booking-system-data-structure-1.png)
+![Schema to support Open Booking API](../../.gitbook/assets/booking-system-data-structure-1.png)
 
 | Entity | Description |
 | :--- | :--- |
@@ -36,7 +22,7 @@ As you have seen in Day 1 and Day 5, the `StoreBookingEngine` does not include a
 
 ## Endpoint Scopes
 
-An OAuth **scope** defines access to a set of endpoints \(and also expectations about claims returned, see [later](./#claims)\). 
+An OAuth **scope** defines access to a set of endpoints \(and also expectations about claims returned, see [later](day-8-authentication.md#claims)\). 
 
 An **Access Token** that includes the required scope \(and which may be acquired via the required flow\) must be included in the Authorization header of the request to access the Open Booking API endpoints:
 
@@ -70,19 +56,20 @@ An **Access Token** that includes the required scope \(and which may be acquired
         <p>Order Status</p>
       </td>
       <td style="text-align:left">
-        <p><a href="./#openid-connect-authorization-code-flow">OpenID Connect Authorization Code Flow</a>
+        <p><a href="day-8-authentication.md#openid-connect-authorization-code-flow">OpenID Connect Authorization Code Flow</a>
           <br
           />(for Multiple Sellers)</p>
         <p></p>
-        <p><a href="./#client-credentials-flow">Client Credentials flow</a>
-          <br />(for Single Seller)</p>
+        <p><a href="day-8-authentication.md#client-credentials-flow">Client Credentials flow</a>
+          <br
+          />(for Single Seller)</p>
       </td>
     </tr>
     <tr>
       <td style="text-align:left"><code>openactive-ordersfeed</code>
       </td>
       <td style="text-align:left">Orders RPDE Feed</td>
-      <td style="text-align:left"><a href="./#client-credentials-flow">Client Credentials flow</a>
+      <td style="text-align:left"><a href="day-8-authentication.md#client-credentials-flow">Client Credentials flow</a>
       </td>
     </tr>
     <tr>
@@ -102,7 +89,7 @@ The preferred approach for booking systems that support multiple Sellers is to p
 
 To call endpoints specific to the Seller when the booking system supports multiple Sellers, the Booking Partner must first acquire a valid **Access Token** with an `openactive-openbooking` scope, by having the Seller complete the Authorization Code Flow. Sellers will be familiar with this flow from websites that offer "Login with my Google Account".
 
-![Example authorization page for a booking partner, presented by a booking system.](../../../.gitbook/assets/seller-authentication-diagram-1.png)
+![Example authorization page for a booking partner, presented by a booking system.](../../.gitbook/assets/seller-authentication-diagram-1.png)
 
 Note however that to complete this flow, the Authorization Request must include both the `openactive-openbooking` and `openid` scopes, to ensure that an ID Token is returned.
 
@@ -112,7 +99,7 @@ Additionally, a "one-time usage" **ID Token** is provided during this flow which
 
 For this flow, the OpenID Connect subject is recommended **not to be the end user** who is following the OAuth flow, but is instead the **Seller** that they represent - such that if, for example, the end user no longer works for the Seller and deletes their account, their authentication grants remain unaffected. This recommendation conforms with OpenID Connect from a technical perspective, which is useful when leveraging existing libraries.
 
-![OpenID Connect Authorization Code Flow](../../../.gitbook/assets/authorization-code-flow-1.png)
+![OpenID Connect Authorization Code Flow](../../.gitbook/assets/authorization-code-flow-1.png)
 
 ### Client Credentials Flow \(for all booking systems\)
 
@@ -122,7 +109,7 @@ The Client Credentials Flow can also be used to retrieve an Access Token ****wit
 
 To complete this flow, the Authorization Request must include only the `openactive-ordersfeed` scope.
 
-![Client Credentials Flow](../../../.gitbook/assets/client-credentials-flow.png)
+![Client Credentials Flow](../../.gitbook/assets/client-credentials-flow.png)
 
 ## Dynamic Client Registration Management
 
@@ -154,19 +141,19 @@ The booking system may consider providing statistics relating to bookings made v
 
 Booking Systems supporting multiple Sellers should provide a view of all the Seller's approved booking partners.
 
-![](../../../.gitbook/assets/new-wireframe-1-8.png)
+![](../../.gitbook/assets/new-wireframe-1-8.png)
 
 #### Booking System administration page
 
 Booking Systems may also provide a dashboard for their own administration, with a view of all booking partners that have been registered as OAuth clients.
 
-![](../../../.gitbook/assets/new-wireframe-1-copy-2%20%281%29.png)
+![](../../.gitbook/assets/new-wireframe-1-copy-2%20%281%29.png)
 
 ### Booking systems supporting a Single Seller
 
 Booking Systems supporting a single Sellers should provide a view of all the Seller's approved booking partners, which is also a list of OAuth clients.
 
-![](../../../.gitbook/assets/new-wireframe-1-copy-4-1.png)
+![](../../.gitbook/assets/new-wireframe-1-copy-4-1.png)
 
 Suspend Bookings revokes access to the `openactive-openbooking` scope, so that only the Orders feed is accessible.
 
@@ -215,7 +202,7 @@ Once the "Create" button is pressed the Client ID and Registration Access token 
 
 It is recommended that an anti-phishing notice is displayed to remind the user to only send credentials to the designated email address, to reduce the risk of the credentials being leaked to a malicious party.
 
-![](../../../.gitbook/assets/new-wireframe-1-copy-2-1.png)
+![](../../.gitbook/assets/new-wireframe-1-copy-2-1.png)
 
 The booking partners name is then displayed in the Booking System administration page in a "pending" state until the Dynamic Client Update endpoint is called.
 
@@ -223,7 +210,7 @@ The booking partners name is then displayed in the Booking System administration
 
 Clicking the "API Key" button of the Booking Partner within the Booking System administration page displays the following:
 
-![](../../../.gitbook/assets/new-wireframe-1-copy-3-2.png)
+![](../../.gitbook/assets/new-wireframe-1-copy-3-2.png)
 
 #### Generate New Registration Key
 
