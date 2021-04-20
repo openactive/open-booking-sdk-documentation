@@ -292,7 +292,7 @@ In Steps 5 and 6, the header configuration can use the default values in order t
 
 In Step 7, your Dataset Site is automatically created and configured by the Booking Engine, so simply update the value of `datasetSiteUrl` based on the port number and path used by your .NET application when running:
 
-{% code title="./packages/openactive-broker-microservice/config/default.json \(extract\)" %}
+{% code title="./config/dev.json \(extract\)" %}
 ```javascript
   "datasetSiteUrl": "https://localhost:44307/openactive"
 ```
