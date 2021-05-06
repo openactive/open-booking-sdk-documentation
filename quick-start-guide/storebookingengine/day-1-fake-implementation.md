@@ -168,49 +168,109 @@ Note that these test header alternatives are not secure and **must not** be used
 
 ### .NET Core
 
+.NET Core implementations can leverage the authentication middleware, using the provided helpers:
+
 ```csharp
-(string clientId, Uri sellerId) = AuthenticationHelper.GetIdsFromAuth(Request, User);
+(string clientId, Uri sellerId) = User.GetAccessTokenOpenBookingClaims();
 return bookingEngine.ProcessCheckpoint1(clientId, sellerId, uuid, orderQuote).GetContentResult();                
 ```
 
+To speed development, the following allows test headers to be used for accessing the API, and can be set up to allow development to proceed until Day 8 of this tutorial.
+
+{% code title="Startup.cs" %}
 ```csharp
-public static class AuthenticationHelper
+public void ConfigureServices(IServiceCollection services)
 {
-    public static (string clientId, Uri sellerId) GetIdsFromAuth(HttpRequest request, ClaimsPrincipal principal, bool requireSellerId)
+    // DO NOT USE THIS IN PRODUCTION.
+    // This passes test API headers straight through to claims, and provides no security whatsoever.
+    services.AddAuthentication(options =>
     {
-        // NOT FOR PRODUCTION USE: Please remove this block in production
-        if (request.Headers.TryGetValue(AuthenticationTestHeaders.ClientId, out StringValues testClientId)
-            && testClientId.Count == 1
-            && (!requireSellerId || (request.Headers.TryGetValue(AuthenticationTestHeaders.SellerId, out StringValues testSellerId) && testSellerId.FirstOrDefault().ParseUrlOrNull() != null))
-            )
-        {
-            return (testClientId.FirstOrDefault(), testSellerId.FirstOrDefault().ParseUrlOrNull());
-        }
+        options.DefaultAuthenticateScheme = TestHeaderAuthenticationOptions.DefaultScheme;
+        options.DefaultChallengeScheme = TestHeaderAuthenticationOptions.DefaultScheme;
 
-        // For production use: Get Ids from JWT
-        var clientId = principal.GetClientId();
-        var sellerId = principal.GetSellerId().ParseUrlOrNull();
-        if (clientId != null && (sellerId != null || !requireSellerId))
-        {
-            return (clientId, sellerId);
-        }
-        else
-        {
-            throw new OpenBookingException(new InvalidAPITokenError());
-        }
+    })
+    .AddTestHeaderAuthenticationSupport(options => { });
+    services.AddAuthorization(options =>
+    {
+        // No authorization checks are performed, this just ensures that the required claims are supplied
+        options.AddPolicy(OpenActiveScopes.OpenBooking, policy => {
+            policy.RequireClaim(OpenActiveCustomClaimNames.ClientId);
+            policy.RequireClaim(OpenActiveCustomClaimNames.SellerId);
+        });
+        options.AddPolicy(OpenActiveScopes.OrdersFeed, policy => policy.RequireClaim(OpenActiveCustomClaimNames.ClientId));
+    });
+}
+```
+{% endcode %}
+
+{% code title="TestHeaderAuthentication.cs" %}
+```csharp
+/**
+* DO NOT USE THIS FILE IN PRODUCTION. This approach is for testing only, and provides no security whatsoever.
+*/
+
+public class TestHeaderAuthenticationOptions : AuthenticationSchemeOptions
+{
+    public const string DefaultScheme = "Test Headers";
+    public string Scheme => DefaultScheme;
+    public string AuthenticationType = DefaultScheme;
+}
+
+public static class AuthenticationBuilderExtensions
+{
+    public static AuthenticationBuilder AddTestHeaderAuthenticationSupport(this AuthenticationBuilder authenticationBuilder, Action<TestHeaderAuthenticationOptions> options)
+    {
+        return authenticationBuilder.AddScheme<TestHeaderAuthenticationOptions, TestHeaderAuthenticationHandler>(TestHeaderAuthenticationOptions.DefaultScheme, options);
+    }
+}
+
+public class TestHeaderAuthenticationHandler : AuthenticationHandler<TestHeaderAuthenticationOptions>
+{
+    public TestHeaderAuthenticationHandler(
+        IOptionsMonitor<TestHeaderAuthenticationOptions> options,
+        ILoggerFactory logger,
+        UrlEncoder encoder,
+        ISystemClock clock) : base(options, logger, encoder, clock)
+    {
     }
 
-    public static (string clientId, Uri sellerId) GetIdsFromAuth(HttpRequest request, ClaimsPrincipal principal)
+    protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
-        return GetIdsFromAuth(request, principal, true);
+        // Get the claims from headers if they exist
+        Request.Headers.TryGetValue(AuthenticationTestHeaders.ClientId, out var testClientId);
+        Request.Headers.TryGetValue(AuthenticationTestHeaders.SellerId, out var testSellerId);
+        var clientId = testClientId.FirstOrDefault();
+        var sellerId = testSellerId.FirstOrDefault();
+
+        // This just passes the test headers through to the claims - it does not provide any security.
+        var claims = new List<Claim>();
+        if (clientId != null) claims.Add(new Claim(OpenActiveCustomClaimNames.ClientId, clientId));
+        if (sellerId != null) claims.Add(new Claim(OpenActiveCustomClaimNames.SellerId, sellerId));
+
+        var identity = new ClaimsIdentity(claims, Options.AuthenticationType);
+        var identities = new List<ClaimsIdentity> { identity };
+        var principal = new ClaimsPrincipal(identities);
+        var ticket = new AuthenticationTicket(principal, Options.Scheme);
+
+        // No checks are made, so this always succeeds. It's just setting the claims if they exist.
+        return AuthenticateResult.Success(ticket);
     }
 
-    public static string GetClientIdFromAuth(HttpRequest request, ClaimsPrincipal principal)
+    protected override async Task HandleChallengeAsync(AuthenticationProperties properties)
     {
-        return GetIdsFromAuth(request, principal, false).clientId;
+
+        Response.StatusCode = 401;
+        await Response.WriteAsync(OpenActiveSerializer.Serialize(new InvalidAPITokenError()));
+    }
+
+    protected override async Task HandleForbiddenAsync(AuthenticationProperties properties)
+    {
+        Response.StatusCode = 403;
+        await Response.WriteAsync(OpenActiveSerializer.Serialize(new UnauthenticatedError()));
     }
 }
 ```
+{% endcode %}
 
 ### .NET Framework
 
@@ -288,9 +348,9 @@ Follow the instructions below to set up the OpenActive Test Suite:
 
 You will need [Node.js](https://nodejs.org/en/) version 14 or above installed to do this - which can installed with the Visual Studio installer.
 
-In Steps 5 and 6, the header configuration can use the default values in order to work with the Booking Engine, except that the Seller `@id` must be replaced with a valid Seller `@id` from your booking system.
+In Steps 7 and 8, the header configuration can use the default values in order to work with the Booking Engine, except that the Seller `@id` must be replaced with a valid Seller `@id` from your booking system.
 
-In Step 7, your Dataset Site is automatically created and configured by the Booking Engine, so simply update the value of `datasetSiteUrl` based on the port number and path used by your .NET application when running:
+In Step 9, your Dataset Site is automatically created and configured by the Booking Engine, so simply update the value of `datasetSiteUrl` based on the port number and path used by your .NET application when running:
 
 {% code title="./config/dev.json \(extract\)" %}
 ```javascript

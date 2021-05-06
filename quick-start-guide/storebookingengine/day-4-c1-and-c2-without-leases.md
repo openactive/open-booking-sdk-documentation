@@ -308,29 +308,22 @@ The following example demonstrates `GetSeller` for Multiple Sellers:
 ```csharp
 protected override ILegalEntity GetSeller(SellerIdComponents sellerIdComponents)
 {
-    var seller = FakeBookingSystem.Database.Sellers.SingleOrDefault(x => x.Id == sellerIdComponents.SellerIdLong);
-    if (seller != null)
+    using (var db = FakeBookingSystem.Database.Mem.Database.Open())
     {
-        return seller.IsIndividual ? (ILegalEntity)new Person
+        var seller = db.SingleById<SellerTable>(sellerIdComponents.SellerIdLong);
+        if (seller == null)
         {
-            Id = this.RenderSellerId(new SellerIdComponents { SellerIdLong = seller.Id }),
-            Name = seller.Name,
-            TaxMode = TaxMode.TaxGross,
-            LegalName = seller.Name,
-            Address = new PostalAddress
-            {
-                StreetAddress = "1 Fake Place",
-                AddressLocality = "Faketown",
-                AddressRegion = "Oxfordshire",
-                PostalCode = "OX1 1AA",
-                AddressCountry = "GB"
-            }
-        } : (ILegalEntity)new Organization
+            // Seller not found
+            return null;
+        }
+
+        return new Organization
         {
-            Id = this.RenderSellerId(new SellerIdComponents { SellerIdLong = seller.Id }),
+            Id = RenderSellerId(new SellerIdComponents { SellerIdLong = seller.Id }),
             Name = seller.Name,
-            TaxMode = TaxMode.TaxGross,
+            TaxMode = seller.IsTaxGross ? TaxMode.TaxGross : TaxMode.TaxNet,
             LegalName = seller.Name,
+            // Note these strings should be populated from the database
             Address = new PostalAddress
             {
                 StreetAddress = "1 Hidden Gem",
@@ -338,12 +331,18 @@ protected override ILegalEntity GetSeller(SellerIdComponents sellerIdComponents)
                 AddressRegion = "Oxfordshire",
                 PostalCode = "OX1 1AA",
                 AddressCountry = "GB"
-            }
+            },
+            TermsOfService = new List<Terms>
+            {
+                new PrivacyPolicy
+                {
+                    Name = "Privacy Policy",
+                    Url = new Uri("https://example.com/privacy.html"),
+                    RequiresExplicitConsent = false
+                }
+            },
+            IsOpenBookingAllowed = true,
         };
-    }
-    else
-    {
-        return null;
     }
 }
 ```
@@ -361,9 +360,10 @@ The following example demonstrates `BookingSystemSettings` for a hard-coded Sing
 ```csharp
 protected override ILegalEntity GetSeller(SellerIdComponents sellerIdComponents)
 {
+    // For Single Seller booking systems, no ID will be available from sellerIdComponents, and this data should instead come from your configuration table
     return new Organization
     {
-        Id = this.RenderSingleSellerId(),
+        Id = RenderSingleSellerId(),
         Name = "Test Seller",
         TaxMode = TaxMode.TaxGross,
         LegalName = "Test Seller Ltd",
@@ -374,7 +374,17 @@ protected override ILegalEntity GetSeller(SellerIdComponents sellerIdComponents)
             AddressRegion = "Oxfordshire",
             PostalCode = "OX1 1AA",
             AddressCountry = "GB"
-        }
+        },
+        TermsOfService = new List<Terms>
+        {
+            new PrivacyPolicy
+            {
+                Name = "Privacy Policy",
+                Url = new Uri("https://example.com/privacy.html"),
+                RequiresExplicitConsent = false
+            }
+        },
+        IsOpenBookingAllowed = true,
     };
 }
 ```
