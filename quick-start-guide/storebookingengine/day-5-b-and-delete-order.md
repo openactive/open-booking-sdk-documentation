@@ -286,7 +286,7 @@ The appropriate lease tests should pass for C1 and C2.
 
 ### Anonymous leasing
 
-The [anonymous-leasing](https://github.com/openactive/openactive-test-suite/tree/master/packages/openactive-integration-tests/test/features/leasing/anonymous-leasing) feature within the `openactive-integration-tests` test suite should pass.
+The [anonymous-leasing](https://github.com/openactive/openactive-test-suite/tree/master/packages/openactive-integration-tests/test/features/leasing/anonymous-leasing) feature within the `openactive-integration-tests` test suite should pass, if anonymous leasing has been implemented.
 
 Run this test in isolation as follows:
 
@@ -296,7 +296,7 @@ npm start -- --runInBand test/features/leasing/anonymous-leasing/
 
 ### Named leasing
 
-The [named-leasing](https://github.com/openactive/openactive-test-suite/tree/master/packages/openactive-integration-tests/test/features/leasing/named-leasing) feature within the `openactive-integration-tests` test suite should pass.
+The [named-leasing](https://github.com/openactive/openactive-test-suite/tree/master/packages/openactive-integration-tests/test/features/leasing/named-leasing) feature within the `openactive-integration-tests` test suite should pass, if anonymous leasing has been implemented.
 
 Run this test in isolation as follows:
 
