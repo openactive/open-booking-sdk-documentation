@@ -324,12 +324,12 @@ Finally, when concurrent transactions are used to write to tables that power RPD
 
 ## Step 8: Run Test Suite for Booking
 
-The [simple-book-free-opportunities](https://github.com/openactive/openactive-test-suite/blob/master/packages/openactive-integration-tests/test/features/core/simple-book-free-opportunities/README.md) and [simple-book-with-payment](https://github.com/openactive/openactive-test-suite/blob/master/packages/openactive-integration-tests/test/features/payment/simple-book-with-payment/README.md) features within the `openactive-integration-tests` test suite should pass.
+The [free-opportunities](https://github.com/openactive/openactive-test-suite/tree/master/packages/openactive-integration-tests/test/features/payment/free-opportunities) and [non-free-opportunities](https://github.com/openactive/openactive-test-suite/tree/master/packages/openactive-integration-tests/test/features/payment/non-free-opportunities) features within the `openactive-integration-tests` test suite should pass.
 
 Run these tests in isolation as follows:
 
 ```text
-npm start -- --runInBand test/features/core/simple-book-free-opportunities/ test/features/payment/simple-book-with-payment/
+npm start -- --runInBand test/features/payment/free-opportunities/ test/features/payment/non-free-opportunities/
 ```
 
 
