@@ -296,7 +296,7 @@ npm start -- --runInBand test/features/leasing/anonymous-leasing/
 
 ### Named leasing
 
-The [named-leasing](https://github.com/openactive/openactive-test-suite/tree/master/packages/openactive-integration-tests/test/features/leasing/named-leasing) feature within the `openactive-integration-tests` test suite should pass, if named leasing has been implemented.
+The [named-leasing](https://github.com/openactive/openactive-test-suite/tree/master/packages/openactive-integration-tests/test/features/leasing/named-leasing) feature within the `openactive-integration-tests` test suite should pass, if anonymous leasing or named leasing has been implemented.
 
 Run this test in isolation as follows:
 
