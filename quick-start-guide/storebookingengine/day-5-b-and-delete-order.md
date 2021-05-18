@@ -284,7 +284,7 @@ public override void DeleteLease(OrderIdComponents orderId)
 
 The appropriate lease tests should pass for C1 and C2.
 
-### Anonymous leasing
+### Anonymous leasing \(C1\)
 
 The [anonymous-leasing](https://github.com/openactive/openactive-test-suite/tree/master/packages/openactive-integration-tests/test/features/leasing/anonymous-leasing) feature within the `openactive-integration-tests` test suite should pass, if anonymous leasing has been implemented.
 
@@ -294,7 +294,7 @@ Run this test in isolation as follows:
 npm start -- --runInBand test/features/leasing/anonymous-leasing/
 ```
 
-### Named leasing
+### Named leasing \(C2\)
 
 The [named-leasing](https://github.com/openactive/openactive-test-suite/tree/master/packages/openactive-integration-tests/test/features/leasing/named-leasing) feature within the `openactive-integration-tests` test suite should pass, if anonymous leasing or named leasing has been implemented.
 
