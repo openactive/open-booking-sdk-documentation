@@ -282,9 +282,27 @@ public override void DeleteLease(OrderIdComponents orderId)
 
 ## Step 6: Run Test Suite for Leases
 
-Lease tests should pass for C1 and C2.
+The appropriate lease tests should pass for C1 and C2.
 
-Lease expiry tests should also pass.
+### Anonymous leasing
+
+The [anonymous-leasing](https://github.com/openactive/openactive-test-suite/tree/master/packages/openactive-integration-tests/test/features/leasing/anonymous-leasing) feature within the `openactive-integration-tests` test suite should pass.
+
+Run this test in isolation as follows:
+
+```text
+npm start -- --runInBand test/features/leasing/anonymous-leasing/
+```
+
+### Named leasing
+
+The [named-leasing](https://github.com/openactive/openactive-test-suite/tree/master/packages/openactive-integration-tests/test/features/leasing/named-leasing) feature within the `openactive-integration-tests` test suite should pass.
+
+Run this test in isolation as follows:
+
+```text
+npm start -- --runInBand test/features/leasing/named-leasing/
+```
 
 ## Step 7: Implement Booking
 
