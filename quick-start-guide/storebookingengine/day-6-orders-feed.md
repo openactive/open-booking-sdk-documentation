@@ -95,14 +95,28 @@ Within the mapping of your data to the OpenActive model, there are a few helper 
 
 ## Step 2: Implement Test Interface
 
-Implement the following endpoints of the test interface:
+The [OpenActive Test Interface Actions Endpoint](https://openactive.io/test-interface/#actions-endpoint) allows the test suite to test behaviours that are usually triggered by the Seller.
 
-* Seller requested cancellation
-* Customer notification
+To support seller requested cancellation and customer notification tests, implement the appropriate Actions with the following cases within the `TriggerTestAction` method in the `OrderStore.cs`:
+
+```csharp
+case SellerRequestedCancellationSimulateAction _:
+    ...
+    break;
+case CustomerNoticeSimulateAction _:
+    ...
+    break;
+```
 
 ## Step 3: Run Test Suite
 
-Tests should pass for C1, C2, B and Orders Feed.
+The [order-deletion](https://github.com/openactive/openactive-test-suite/blob/master/packages/openactive-integration-tests/test/features/core/order-deletion/README.md), [seller-requested-cancellation](https://github.com/openactive/openactive-test-suite/blob/master/packages/openactive-integration-tests/test/features/cancellation/seller-requested-cancellation/README.md), and [customer-notice-notifications](https://github.com/openactive/openactive-test-suite/blob/master/packages/openactive-integration-tests/test/features/notifications/customer-notice-notifications/README.md) \(if implemented\) features within the `openactive-integration-tests` test suite should pass.
 
 Note that headers are used in the tests to provide a temporary `clientId` in place of authentication credentials.
+
+Run these tests in isolation as follows:
+
+```text
+npm start -- --runInBand test/features/core/order-deletion/ test/features/cancellation/seller-requested-cancellation/ test/features/notifications/customer-notice-notifications/
+```
 
