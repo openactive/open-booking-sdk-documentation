@@ -8,6 +8,10 @@ Create open data RPDE feeds live from your application.
 
 Open Booking API is built on top of open data feed publishing, and RPDE feeds are therefore a prerequisite to implementing the rest of the API.
 
+{% hint style="info" %}
+Even for systems that have already implemented OpenActive open data feeds, it is highly recommended that the feed generation code is migrated to within the OpenActive.Server.NET framework, using the steps below. This will greatly simplify the rest of the implementation, and increase maintainability.
+{% endhint %}
+
 ## Step 1 - Understand the RPDE specification
 
 Before continuing with this tutorial, the following video offers a good theoretical understanding of the RPDE specification. Further information can be found in the [developers guide](https://developer.openactive.io/publishing-data/data-feeds/how-a-data-feed-works) and [RPDE specification](https://www.w3.org/2017/08/realtime-paged-data-exchange/).
@@ -18,7 +22,7 @@ Before continuing with this tutorial, the following video offers a good theoreti
 
 In order for opportunities and offers within open RPDE feeds to be bookable via the Open Booking API, they must have IDs.
 
-The Open Booking API is based on [JSON-LD](https://json-ld.org/).  JSON-LD IDs always take the form of a URL, and hence all IDs within the Open Booking API also take the form of a URL. The `StoreBookingEngine` automatically constructs and parses these URLs for you, and deserialises them into POCOs. It also handles routing based on the URL template to the relevant store depending on the type of opportunity. 
+The Open Booking API is based on [JSON-LD](https://json-ld.org).  JSON-LD IDs always take the form of a URL, and hence all IDs within the Open Booking API also take the form of a URL. The `StoreBookingEngine` automatically constructs and parses these URLs for you, and deserialises them into POCOs. It also handles routing based on the URL template to the relevant store depending on the type of opportunity.&#x20;
 
 In order to take advantage of these features, you need to configure the URL structure specifically for your application.
 
@@ -53,7 +57,7 @@ There are two key components that handle JSON-LD ID serialisation and deserialis
 
 Note that the JSON-LD IDs do not need to resolve to actual endpoints, provided they are unique and exist within your domain.
 
-### **Configuring IBookablePairIdTemplates** 
+### **Configuring IBookablePairIdTemplates**&#x20;
 
 `IBookablePairIdTemplate` instances are configured in `Startup.cs` or `ServiceConfig.cs` within `BookingEngineSettings`:
 
@@ -99,81 +103,20 @@ new BookingEngineSettings
 }
 ```
 
-<table>
-  <thead>
-    <tr>
-      <th style="text-align:left">Where you these referenced in the example above...</th>
-      <th style="text-align:left">The following annotations apply...</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td style="text-align:left"><code>SessionOpportunity</code> and <code>EventOpportunity</code>
-      </td>
-      <td style="text-align:left">Examples of an <code>IBookableIdComponents</code> POCO used to map to placeholders
-        within the ID templates defined</td>
-    </tr>
-    <tr>
-      <td style="text-align:left"><code>BookablePairIdTemplate</code>
-      </td>
-      <td style="text-align:left">A template that contains a hierarchy of up to three OpenActive types,
-        in order from child to parent (e.g. <code>ScheduledSession</code> &#x2192; <code>SessionSeries</code> &#x2192; <code>EventSeries</code>). <code>BookablePairIdTemplate</code> accepts
-        the generic parameter of an <code>IBookableIdComponents</code> type, which
-        binds the placeholders within the URL templates specified to the properties
-        defined within the <code>IBookableIdComponents</code> POCO.</td>
-    </tr>
-    <tr>
-      <td style="text-align:left"><code>BookablePairIdTemplateWithOfferInheritance</code>
-      </td>
-      <td style="text-align:left">A specialism of<b> </b><code>BookablePairIdTemplate</code> designed for
-        the special case of <code>ScheduledSession</code> &#x2192; <code>SessionSeries</code> where
-        Offers may be inherited from <code>SessionSeries</code> to <code>ScheduledSession</code>.</td>
-    </tr>
-    <tr>
-      <td style="text-align:left"><code>OpportunityType</code>
-      </td>
-      <td style="text-align:left">The OpenActive opportunity type represented</td>
-    </tr>
-    <tr>
-      <td style="text-align:left"><code>AssignedFeed</code>
-      </td>
-      <td style="text-align:left">The feed within which this opportunity type is published (for example,
-        the <code>EventSeries</code> may be embedded within a <code>SessionSeries</code> feed
-        as shown in <a href="https://validator.openactive.io/?url=https%3A%2F%2Fwww.openactive.io%2Fdata-models%2Fversions%2F2.x%2Fexamples%2Fsessionseries-eventseries-split_example_1.json&amp;version=2.0">this example</a>).</td>
-    </tr>
-    <tr>
-      <td style="text-align:left">
-        <p><code>OpportunityUriTemplate</code>
-        </p>
-        <p><code>OfferUriTemplate</code>
-        </p>
-      </td>
-      <td style="text-align:left">The URL Template<code>s</code> used to serialise/deserialise the POCO for
-        an Opportunity ID and Offer ID. Note that the Opportunity ID and Offer
-        ID are deserialised into the same POCO, as an <a href="https://www.openactive.io/open-booking-api/EditorsDraft/#definition-of-a-bookable-opportunity-and-offer-pair">Opportunity and Offer pair</a>,
-        and hence any shared components within these must match (e.g. an Offer
-        is specific to an Event, and hence will include both the Event ID and and</td>
-    </tr>
-    <tr>
-      <td style="text-align:left"><code>Bookable</code>
-      </td>
-      <td style="text-align:left">Whether the specified <a href="https://www.openactive.io/open-booking-api/EditorsDraft/#definition-of-a-bookable-opportunity-and-offer-pair">Opportunity and Offer pair</a> is
-        bookable within this booking system using the Open Booking API. Note that <code>SessionSeries</code> and <code>FacilityUse</code> are
-        not bookable within the Open Booking API, which instead prefers <code>ScheduledSessions</code> or <code>Slots</code>.</td>
-    </tr>
-    <tr>
-      <td style="text-align:left"><code>BaseUrl</code>
-      </td>
-      <td style="text-align:left">This is a placeholder within the ID templates that has a special function
-        of ensuring conformity with the <code>JsonLdIdBaseUrl</code> setting within <code>BookingEngineSettings</code>,
-        both for serialisation and deserialisation.</td>
-    </tr>
-  </tbody>
-</table>
+| Where you these referenced in the example above...                             | The following annotations apply...                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| ------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `SessionOpportunity` and `EventOpportunity`                                    | Examples of an `IBookableIdComponents` POCO used to map to placeholders within the ID templates defined                                                                                                                                                                                                                                                                                                                                                                            |
+| `BookablePairIdTemplate`                                                       | A template that contains a hierarchy of up to three OpenActive types, in order from child to parent (e.g. `ScheduledSession` → `SessionSeries` → `EventSeries`). `BookablePairIdTemplate` accepts the generic parameter of an  `IBookableIdComponents` type, which binds the placeholders within the URL templates specified to the properties defined within the  `IBookableIdComponents` POCO.                                                                                   |
+| `BookablePairIdTemplateWithOfferInheritance`                                   | A specialism of **** `BookablePairIdTemplate` designed for the special case of `ScheduledSession` → `SessionSeries` where Offers may be inherited from `SessionSeries` to `ScheduledSession`.                                                                                                                                                                                                                                                                                      |
+| `OpportunityType`                                                              | The OpenActive opportunity type represented                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `AssignedFeed`                                                                 | The feed within which this opportunity type is published (for example, the `EventSeries` may be embedded within a `SessionSeries` feed as shown in [this example](https://validator.openactive.io/?url=https%3A%2F%2Fwww.openactive.io%2Fdata-models%2Fversions%2F2.x%2Fexamples%2Fsessionseries-eventseries-split\_example\_1.json\&version=2.0)).                                                                                                                                |
+| <p><code>OpportunityUriTemplate</code></p><p><code>OfferUriTemplate</code></p> | The URL Template`s` used to serialise/deserialise the POCO for an Opportunity ID and Offer ID. Note that the Opportunity ID and Offer ID are deserialised into the same POCO, as an [Opportunity and Offer pair](https://www.openactive.io/open-booking-api/EditorsDraft/#definition-of-a-bookable-opportunity-and-offer-pair), and hence any shared components within these must match (e.g. an Offer is specific to an Event, and hence will include both the Event ID and  and  |
+| `Bookable`                                                                     | Whether the specified [Opportunity and Offer pair](https://www.openactive.io/open-booking-api/EditorsDraft/#definition-of-a-bookable-opportunity-and-offer-pair) is bookable within this booking system using the Open Booking API. Note that `SessionSeries` and `FacilityUse` are not bookable within the Open Booking API, which instead prefers `ScheduledSessions` or `Slots`.                                                                                                |
+| `BaseUrl`                                                                      | This is a placeholder within the ID templates that has a special function of ensuring conformity with the `JsonLdIdBaseUrl` setting within `BookingEngineSettings`, both for serialisation and deserialisation.                                                                                                                                                                                                                                                                    |
 
 ### **Configuring IBookableIdComponents**
 
- `IBookableIdComponents` are defined by the classes in the `IdComponents` directory.
+&#x20;`IBookableIdComponents` are defined by the classes in the `IdComponents` directory.
 
 These classes must be created by the booking system. There is a choice of `string`, `long?` and `Uri` available as the type for each component of the ID, as well as any `enum` type. The names of the components must exactly match the placeholders within the associated `IBookablePairIdTemplates`.
 
@@ -188,10 +131,10 @@ public class SessionOpportunity : IBookableIdComponentsWithInheritance
 }
 ```
 
-| In the example above | Description |
-| :--- | :--- |
-| `OpportunityType`  | The `OpportunityType` represents the type in the hierarchy that the  [Opportunity and Offer pair](https://www.openactive.io/open-booking-api/EditorsDraft/#definition-of-a-bookable-opportunity-and-offer-pair) represents \(e.g. `HeadlineEvent` or its child `Event`\). This property is available by the class extending either `IBookableIdComponents` or `IBookableIdComponentsWithInheritance`. |
-| `OfferOpportunityType` | For `SessionSeries`, where the `Offer` can be inherited to the child `ScheduledSession`, `OfferOpportunityType` indicates which `Offer` is being referenced - the parent or the child. This property is only available by the class extending `IBookableIdComponentsWithInheritance`. |
+| In the example above   | Description                                                                                                                                                                                                                                                                                                                                                                                         |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `OpportunityType`      | The `OpportunityType` represents the type in the hierarchy that the  [Opportunity and Offer pair](https://www.openactive.io/open-booking-api/EditorsDraft/#definition-of-a-bookable-opportunity-and-offer-pair) represents (e.g. `HeadlineEvent` or its child `Event`). This property is available by the class extending either `IBookableIdComponents` or `IBookableIdComponentsWithInheritance`. |
+| `OfferOpportunityType` | For `SessionSeries`, where the `Offer` can be inherited to the child `ScheduledSession`, `OfferOpportunityType` indicates which `Offer` is being referenced - the parent or the child. This property is only available by the class extending `IBookableIdComponentsWithInheritance`.                                                                                                               |
 
 ## **Step 3 - Set up your Seller ID structure**
 
@@ -234,7 +177,7 @@ SellerIdTemplate = new SingleIdTemplate<SellerIdComponents>(
     ),
 ```
 
-## **Step 4 - Create RPDE Feed Generators** 
+## **Step 4 - Create RPDE Feed Generators**&#x20;
 
 The `StoreBookingEngine` handles the serialisation and parameter validation that would usually be required when implementing an RPDE feed. All that is required for each feed is to implement a single method within an `IOpportunityDataRPDEFeedGenerator` class.
 
@@ -287,75 +230,12 @@ The appropriate query for the database for your chosen [RPDE Ordering Strategy](
 
 Within the mapping of your data to the OpenActive model, there are a few helper methods available from the base class to construct IDs specific for the feed:
 
-<table>
-  <thead>
-    <tr>
-      <th style="text-align:left">Method</th>
-      <th style="text-align:left">Example</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td style="text-align:left"><code>RenderOpportunityId</code>
-      </td>
-      <td style="text-align:left">
-        <p><code>Id = this.RenderOpportunityId(new SessionOpportunity</code>
-        </p>
-        <p><code>{</code>
-        </p>
-        <p><code>    OpportunityType = OpportunityType.SessionSeries,</code>
-        </p>
-        <p><code>    SessionSeriesId = @class.Id</code>
-        </p>
-        <p><code>}),</code>
-        </p>
-      </td>
-    </tr>
-    <tr>
-      <td style="text-align:left"><code>RenderOfferId</code>
-      </td>
-      <td style="text-align:left">
-        <p><code>Id = this.RenderOfferId(new SessionOpportunity</code>
-        </p>
-        <p><code>{</code>
-        </p>
-        <p><code>    OfferOpportunityType = OpportunityType.SessionSeries,</code>
-        </p>
-        <p><code>    SessionSeriesId = @class.Id,</code>
-        </p>
-        <p><code>    OfferId = 0</code>
-        </p>
-        <p><code>}),</code>
-        </p>
-      </td>
-    </tr>
-    <tr>
-      <td style="text-align:left">
-        <p><code>RenderSellerId</code>
-        </p>
-        <p></p>
-        <p>(for Multiple Sellers)</p>
-      </td>
-      <td style="text-align:left">
-        <p><code>Id = this.RenderSellerId(new SellerIdComponents</code>
-        </p>
-        <p><code>{</code>
-        </p>
-        <p><code>    SellerIdLong = seller.Id</code>
-        </p>
-        <p><code>}),</code>
-        </p>
-      </td>
-    </tr>
-    <tr>
-      <td style="text-align:left"><code>RenderSingleSellerId</code>
-        <br />
-        <br />(for Single Seller)</td>
-      <td style="text-align:left"><code>Id = this.RenderSingleSellerId(),</code>
-      </td>
-    </tr>
-  </tbody>
-</table>
+| Method                                                                 | Example                                                                                                                                                                                                                                                                            |
+| ---------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `RenderOpportunityId`                                                  | <p><code>Id = this.RenderOpportunityId(new SessionOpportunity</code></p><p><code>{</code></p><p>    <code>OpportunityType = OpportunityType.SessionSeries,</code></p><p>    <code>SessionSeriesId = @class.Id</code></p><p><code>}),</code></p>                                    |
+| `RenderOfferId`                                                        | <p><code>Id = this.RenderOfferId(new SessionOpportunity</code></p><p><code>{</code></p><p>    <code>OfferOpportunityType = OpportunityType.SessionSeries,</code></p><p>    <code>SessionSeriesId = @class.Id,</code></p><p>    <code>OfferId = 0</code></p><p><code>}),</code></p> |
+| <p><code>RenderSellerId</code></p><p></p><p>(for Multiple Sellers)</p> | <p><code>Id = this.RenderSellerId(new SellerIdComponents</code></p><p><code>{</code></p><p>    <code>SellerIdLong = seller.Id</code></p><p><code>}),</code></p>                                                                                                                    |
+| <p><code>RenderSingleSellerId</code><br><br>(for Single Seller)</p>    | `Id = this.RenderSingleSellerId(),`                                                                                                                                                                                                                                                |
 
 ## **Step 5 - Configure Dataset Site**
 
@@ -371,9 +251,7 @@ If you have already implemented a dataset site within your application using Ope
 
 ## Step 6 - Test data feeds and dataset site
 
-If you run your application and navigate to the dataset site endpoint \(e.g. [https://localhost:44307/openactive](https://localhost:44307/openactive)\), you should find it now reflects your updated settings, and the links to the RPDE pages on that page work as expected.
-
-
+If you run your application and navigate to the dataset site endpoint (e.g. [https://localhost:44307/openactive](https://localhost:44307/openactive)), you should find it now reflects your updated settings, and the links to the RPDE pages on that page work as expected.
 
 
 
